@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>nesfr_arm_only_description</name>
+  <name>nesfr_arm_description</name>
   <version>2.0.2</version>
   <description>
     URDF description for NESFR Robot Arm

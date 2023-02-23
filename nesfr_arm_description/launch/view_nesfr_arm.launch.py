@@ -13,7 +13,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_package",
-            default_value="nesfr_arm_only_description",
+            default_value="nesfr_arm_description",
             description="Description package with robot URDF/XACRO files. Usually the argument \
         is not set, it enables use of a custom description.",
         )
@@ -21,7 +21,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="nesfr_arm_only.urdf.xacro",
+            default_value="nesfr_arm.urdf.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
@@ -32,8 +32,8 @@ def generate_launch_description():
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
 
-    nesfr_arm_only_params = PathJoinSubstitution(
-        [FindPackageShare(description_package), "config", "nesfr_arm_only.yaml"]
+    nesfr_arm_params = PathJoinSubstitution(
+        [FindPackageShare(description_package), "config", "nesfr_arm.yaml"]
     )
 
     robot_description_content = Command(
@@ -42,8 +42,8 @@ def generate_launch_description():
             " ",
             PathJoinSubstitution([FindPackageShare(description_package), "urdf", description_file]),
             " ",
-            "nesfr_arm_only_params:=",
-            nesfr_arm_only_params,
+            "nesfr_arm_params:=",
+            nesfr_arm_params,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
