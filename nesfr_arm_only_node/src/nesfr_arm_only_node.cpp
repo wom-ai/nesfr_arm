@@ -31,8 +31,8 @@ using std::placeholders::_1;
 #define XBOX_JOYSTICK_BUTTONS_X             3
 #define XBOX_JOYSTICK_BUTTONS_Y             4
 
-const static float _max_arm_height = 0.9f;
-const static float _min_arm_height = 0.0f;
+const static float _max_arm_height = 1.0;
+const static float _min_arm_height = 0.1f;
 class NesfrArmOnlyNode : public rclcpp::Node
 {
     public:
