@@ -33,17 +33,17 @@ using std::placeholders::_1;
 
 const static float _max_arm_height = 1.0;
 const static float _min_arm_height = 0.1f;
-class NesfrArmOnlyNode : public rclcpp::Node
+class NesfrArmNode : public rclcpp::Node
 {
     public:
-        NesfrArmOnlyNode()
+        NesfrArmNode()
             : Node("nesfr_arm_only_node"),  _current_height(_max_arm_height)
         {
             publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
             timer_ = this->create_wall_timer(
-                    500ms, std::bind(&NesfrArmOnlyNode::timer_callback, this));
+                    500ms, std::bind(&NesfrArmNode::timer_callback, this));
             subscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
-                    "joy", 10, std::bind(&NesfrArmOnlyNode::joy_callback, this, _1));
+                    "joy", 10, std::bind(&NesfrArmNode::joy_callback, this, _1));
 
             // setup for shared memory
             key_t cmdvel_shm_key = ftok("/tmp/cmdvel_shm_file",65);
@@ -105,7 +105,7 @@ class NesfrArmOnlyNode : public rclcpp::Node
 int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::Node::SharedPtr node_ptr = std::make_shared<NesfrArmOnlyNode>();
+    rclcpp::Node::SharedPtr node_ptr = std::make_shared<NesfrArmNode>();
     rclcpp::spin(node_ptr);
     rclcpp::shutdown();
     return 0;

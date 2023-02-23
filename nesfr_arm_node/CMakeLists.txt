@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nesfr_arm_only_node)
+project(nesfr_arm_node)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -23,17 +23,17 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-add_executable(nesfr_arm_only_node src/nesfr_arm_only_node.cpp)
-ament_target_dependencies(nesfr_arm_only_node
+add_executable(nesfr_arm_node src/nesfr_arm_node.cpp)
+ament_target_dependencies(nesfr_arm_node
     "rclcpp"
     "sensor_msgs"
     )
 
-target_include_directories(nesfr_arm_only_node PUBLIC
+target_include_directories(nesfr_arm_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS nesfr_arm_only_node
+install(TARGETS nesfr_arm_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
