@@ -31,13 +31,11 @@ using std::placeholders::_1;
 #define XBOX_JOYSTICK_BUTTONS_X             3
 #define XBOX_JOYSTICK_BUTTONS_Y             4
 
-const static float _max_arm_height = 1.0;
-const static float _min_arm_height = 0.1f;
 class NesfrArmNode : public rclcpp::Node
 {
     public:
         NesfrArmNode()
-            : Node("nesfr_arm_only_node"),  _current_height(_max_arm_height)
+            : Node("nesfr_arm_only_node")
         {
             publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
             timer_ = this->create_wall_timer(
@@ -63,6 +61,13 @@ class NesfrArmNode : public rclcpp::Node
             int wheel_cmd_shmid = shmget(wheel_cmd_shm_key,1024,0666|IPC_CREAT);
             _wheel_cmd_shm = static_cast<float *>(shmat(wheel_cmd_shmid,(void*)0,0));
             _wheel_cmd_ts = reinterpret_cast<uint64_t *>(_wheel_cmd_shm);
+
+            this->declare_parameter("joint_limits.shoulder_lift.min_position");
+            this->declare_parameter("joint_limits.shoulder_lift.max_position");
+
+            this->get_parameter_or<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle, 5.0f);
+            this->get_parameter_or<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle, 60.0f);
+            RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
         }
 
     private:
@@ -70,7 +75,7 @@ class NesfrArmNode : public rclcpp::Node
         {
             auto message = sensor_msgs::msg::JointState();
             message.header.frame_id = "nesfr_arm_only";
-            RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _current_height);
+            RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _current_arm_angle);
             publisher_->publish(message);
         }
         rclcpp::TimerBase::SharedPtr timer_;
@@ -78,19 +83,19 @@ class NesfrArmNode : public rclcpp::Node
         void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
         {
 
-            _current_height += 0.02f*msg->axes[XBOX_JOYSTICK_AXES_Y1];
+            _current_arm_angle += 0.02f*msg->axes[XBOX_JOYSTICK_AXES_Y1];
 
-            _current_height = std::clamp(_current_height, _min_arm_height, _max_arm_height);
+            _current_arm_angle = std::clamp(_current_arm_angle, _min_arm_angle, _max_arm_angle);
 
-            _cmdvel_shm[5] = _current_height;
-            _wheel_cmd_shm[6] = _current_height;
+            _cmdvel_shm[5] = _current_arm_angle;
+            _wheel_cmd_shm[6] = _current_arm_angle;
 
-            RCLCPP_INFO(this->get_logger(), "subscribe %s: _current_height=%f", msg->header.frame_id.c_str(), _current_height);
+            RCLCPP_INFO(this->get_logger(), "subscribe %s: _current_arm_angle=%f", msg->header.frame_id.c_str(), _current_arm_angle);
         }
 
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr subscription_;
 
-        float _current_height;
+        float _current_arm_angle;
 
         uint64_t _last_read_timestamp;
         float* _cmdvel_shm;
@@ -99,6 +104,8 @@ class NesfrArmNode : public rclcpp::Node
         float* _wheel_cmd_shm;
         uint64_t* _wheel_cmd_ts;
 
+        float _min_arm_angle = 5.0f;
+        float _max_arm_angle = 60.0f;
 
 };
 
