@@ -27,7 +27,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource([
                 PathJoinSubstitution([
                     FindPackageShare('nesfr_arm_bringup'), 'launch',
-                    'nesfr7_arm.launch.py'
+                    'nesfr7_arm_common.launch.py'
                     ])
                 ]),
             launch_arguments={
@@ -35,6 +35,26 @@ def generate_launch_description():
                 }.items()
             )
 
+    joy_params = {
+            'device_id': 0,
+            'device_name': "",
+            'deadzone': 0.5,
+            'autorepeat_rate': 20.0,
+            #                    'sticky_buttons': 'false',
+            'coalesce_interval_ms': 1
+            }
+    joy_node = Node(
+            package='joy',
+            executable='joy_node',
+            namespace=namespace,
+            remappings = [
+                ('joy', 'joy'),
+                ('joy/set_feedback', 'xbox_joy/set_feedback'),
+                ],
+            output='both',
+            parameters=[joy_params])
+
+    # TODO
     nesfr_system_main = ExecuteProcess(
             cmd=[[FindExecutable(name='nesfr_system')
                 ]],
@@ -44,5 +64,7 @@ def generate_launch_description():
     return LaunchDescription([
         namespace_launch_arg,
         nesfr7_arm_launch,
+        joy_node,
+        # TODO
         #nesfr_system_main,
     ])
