@@ -1,4 +1,4 @@
-nesfr7_00/nesfr7_arm_node:
+nesfr7_arm_00/nesfr7_arm_node:
   ros__parameters:
     test: 120
     kinematics:
@@ -30,9 +30,9 @@ nesfr7_00/nesfr7_arm_node:
     #
     joint_limits:
       shoulder_lift:
-        min_position: 5.0
-        max_position: 60.0
+        min_position: 0.08726 # 5.0*M_PI/180
+        max_position: 1.04719 # 60.0*M_PI/180
 
       elbow_joint:
-        min_position: 10.0
-        max_position: 120.0
+        min_position: 0.17453 # 10.0*M_PI/180
+        max_position: 2.09439 # 120.0*M_PI/180
