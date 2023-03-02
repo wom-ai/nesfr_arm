@@ -11,7 +11,13 @@ from launch.substitutions import (EnvironmentVariable, FindExecutable,
 
 
 def generate_launch_description():
+    #
+    # references
+    #  - https://answers.ros.org/question/384712/ros2-launch-how-to-concatenate-launchconfiguration-with-string/
+    #  - https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/blob/foxy/ur_bringup/launch/ur_control.launch.py#L219
+    #
     namespace = LaunchConfiguration('namespace')
+    robot_config_file = LaunchConfiguration('robot_config_file', default=[namespace, '.yaml'])
 
     namespace_launch_arg = DeclareLaunchArgument(
             'namespace',
@@ -19,7 +25,7 @@ def generate_launch_description():
             )
 
     nesfr7_arm_param = PathJoinSubstitution(
-            [FindPackageShare("nesfr_arm_description"), "config", "{}.yaml".format(namespace)]
+            [FindPackageShare("nesfr_arm_description"), "config", robot_config_file]
             )
 
     nesfr_arm_node = Node(
