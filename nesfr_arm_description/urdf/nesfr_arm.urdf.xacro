@@ -32,19 +32,71 @@
         <color rgba="0.1 0.1 0.1 1" />
     </material>
 
-    <link name="base_footprint"/>
+    <link name="robot_arm_base_footprint"/>
 
-    <joint name="base_joint" type="fixed">
-        <parent link="base_footprint"/>
-        <child link="base_link"/>
-        <origin xyz="0.0 0.0 0.07131916" rpy="0 0 0"/>
+    <link name="upper_arm_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.3" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.3" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="fore_arm_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.3" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.3" />
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="shoulder_lift" type="revolute">
+        <parent link="robot_arm_base_footprint"/>
+        <child link="upper_arm_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="${-55.0*M_PI/180.0}" upper="0.0" />
+        <origin xyz="0.0 0.0 0.1" rpy="0 ${-5.0*M_PI/180.0} 0"/>
     </joint>
 
-    <link name="base_link">
+    <joint name="elbow_joint" type="revolute">
+        <parent link="upper_arm_link"/>
+        <child link="fore_arm_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="0.0" upper="${110.0*M_PI/180.0}" />
+        <origin xyz="0.0 0.0 0.3" rpy="0 ${10.0*M_PI/180.0} 0"/>
+    </joint>
+
+    <joint name="gimbal_base_joint" type="revolute">
+        <parent link="fore_arm_link"/>
+        <child link="gimbal_base_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="${-55.0*M_PI/180.0}" upper="0.0" />
+        <origin xyz="0.0 0.0 0.3" rpy="0 ${-5.0*M_PI/180.0} 0"/>
+    </joint>
+
+    <link name="gimbal_base_link">
         <visual>
             <origin xyz="0.0 0.0 0.05" rpy="0 0 0"/>
             <geometry>
-                <cylinder length="0.10" radius="0.10"/>
+                <cylinder length="0.10" radius="0.03"/>
             </geometry>
             <material name="white"/>
         </visual>
@@ -52,13 +104,13 @@
         <collision>
             <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
             <geometry>
-                <cylinder length="0.10" radius="0.10"/>
+                <cylinder length="0.10" radius="0.03"/>
             </geometry>
         </collision>
     </link>
 
     <joint name="main_cam_base_joint" type="prismatic">
-        <parent link="base_link"/>
+        <parent link="gimbal_base_link"/>
         <child link="main_cam_pan_link"/>
         <axis xyz="0 0 1" />
         <limit effort="10" velocity="1"  lower="0.0" upper="2.0" />
@@ -86,7 +138,7 @@
         <parent link="main_cam_tilt_link"/>
         <child link="main_cam_link"/>
         <axis xyz="0 1 0" />
-        <limit effort="10" velocity="1"  lower="-${0.5*M_PI}" upper="0.0" />
+        <limit effort="10" velocity="1"  lower="-${0.5*M_PI}" upper="${0.5*M_PI}" />
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     </joint>
 

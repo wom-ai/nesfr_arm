@@ -63,11 +63,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
+        camera_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -86,6 +82,10 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         main_img_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_arm_base_footprint:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -99,9 +99,7 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_footprint:
-          Value: true
-        base_link:
+        camera_base_link:
           Value: true
         main_cam_link:
           Value: true
@@ -111,14 +109,16 @@ Visualization Manager:
           Value: true
         main_img_link:
           Value: true
+        robot_arm_base_footprint:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        base_footprint:
-          base_link:
+        robot_arm_base_footprint:
+          camera_base_link:
             main_cam_pan_link:
               main_cam_tilt_link:
                 main_cam_link:
@@ -129,7 +129,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: robot_arm_base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -204,4 +204,4 @@ Window Geometry:
     collapsed: false
   Width: 1200
   X: 676
-  Y: 345
+  Y: 197
