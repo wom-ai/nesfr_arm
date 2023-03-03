@@ -1,30 +1,5 @@
 nesfr7_arm_00/nesfr7_arm_node:
   ros__parameters:
-    test: 120
-    kinematics:
-      shoulder:
-        x: 0
-        y: 0
-        z: 0
-        roll: 0
-        pitch: 0
-        yaw: 0
-
-      upper_arm:
-        x: 0
-        y: 0
-        z: 0
-        roll: 0
-        pitch: 0
-        yaw: 0
-
-      fore_arm:
-        x: 0
-        y: 0
-        z: 0
-        roll: 0
-        pitch: 0
-        yaw: 0
     #
     # reference: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/blob/foxy/ur_description/config/ur3/joint_limits.yaml
     #

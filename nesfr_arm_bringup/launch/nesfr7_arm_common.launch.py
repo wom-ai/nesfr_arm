@@ -17,15 +17,17 @@ def generate_launch_description():
     #  - https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/blob/foxy/ur_bringup/launch/ur_control.launch.py#L219
     #
     namespace = LaunchConfiguration('namespace')
-    robot_config_file = LaunchConfiguration('robot_config_file', default=[namespace, '.yaml'])
-
     namespace_launch_arg = DeclareLaunchArgument(
             'namespace',
             default_value='please_set_namespace'
             )
 
-    nesfr7_arm_param = PathJoinSubstitution(
-            [FindPackageShare("nesfr_arm_description"), "config", robot_config_file]
+    #
+    # nesfr_arm_node
+    #
+    robot_config_file = LaunchConfiguration('robot_config_file', default=[namespace, '.yaml'])
+    nesfr7_arm_params = PathJoinSubstitution(
+            [FindPackageShare("nesfr_arm_bringup"), "config", robot_config_file]
             )
 
     nesfr_arm_node = Node(
@@ -33,7 +35,7 @@ def generate_launch_description():
         executable='nesfr_arm_node',
         namespace=namespace,
         name='nesfr7_arm_node',
-        parameters=[nesfr7_arm_param],
+        parameters=[nesfr7_arm_params],
         #parameters=[{"param0": 1, "param1": 2}],
         output='both',
     )
