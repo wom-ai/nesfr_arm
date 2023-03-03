@@ -9,7 +9,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.actions import (DeclareLaunchArgument, EmitEvent, ExecuteProcess,
                             LogInfo, RegisterEventHandler, TimerAction)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (EnvironmentVariable, FindExecutable,
+from launch.substitutions import (Command, EnvironmentVariable, FindExecutable,
                                 LaunchConfiguration, LocalSubstitution,
                                 PythonExpression, PathJoinSubstitution)
 
@@ -22,6 +22,33 @@ def generate_launch_description():
             #default_value=EnvironmentVariable(name='HOSTNAME')
             default_value=hostname
             )
+
+    #
+    # robot_state_publisher_node
+    #
+    nesfr_arm_params = PathJoinSubstitution(
+        [FindPackageShare("nesfr_arm_description"), "config", "nesfr7_arm.yaml"]
+    )
+
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution([FindPackageShare("nesfr_arm_description"), "urdf", "nesfr_arm.urdf.xacro"]),
+            " ",
+            "nesfr_arm_params:=",
+            nesfr_arm_params,
+            " ",
+        ]
+    )
+    robot_description = {"robot_description": robot_description_content}
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        namespace=namespace,
+        output="both",
+        parameters=[robot_description],
+    )
 
 
     nesfr7_arm_launch = IncludeLaunchDescription(
@@ -50,13 +77,14 @@ def generate_launch_description():
             namespace=namespace,
             remappings = [
                 ('joy', 'joy'),
-                ('joy/set_feedback', 'xbox_joy/set_feedback'),
+                ('joy/set_feedback', 'joy/set_feedback'),
                 ],
             output='both',
             parameters=[joy_params])
 
     return LaunchDescription([
         namespace_launch_arg,
+        robot_state_publisher_node,
         nesfr7_arm_launch,
         joy_node,
     ])

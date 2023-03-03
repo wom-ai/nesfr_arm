@@ -167,7 +167,7 @@
         <origin xyz="${fore_arm_x} ${fore_arm_y} ${fore_arm_z}" rpy="${fore_arm_roll} ${fore_arm_pitch} ${fore_arm_yaw}"/>
     </joint>
 
-    <joint name="wrist_base_joint" type="revolute">
+    <joint name="wrist_joint" type="revolute">
         <parent link="fore_arm_link"/>
         <child link="wrist_link"/>
         <axis xyz="0 1 0" />

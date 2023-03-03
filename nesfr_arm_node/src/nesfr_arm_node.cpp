@@ -39,7 +39,7 @@ class NesfrArmNode : public rclcpp::Node
         {
             publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
             timer_ = this->create_wall_timer(
-                    500ms, std::bind(&NesfrArmNode::timer_callback, this));
+                    100ms, std::bind(&NesfrArmNode::timer_callback, this));
             subscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
                     "joy", 10, std::bind(&NesfrArmNode::joy_callback, this, _1));
 
@@ -77,7 +77,7 @@ class NesfrArmNode : public rclcpp::Node
             this->get_parameter_or<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle, 5.0f*(M_PI/180.0f));
             this->get_parameter_or<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle, 60.0f*(M_PI/180.0f));
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
-           
+
             _current_arm_angle = _arm_stats_shm[2];
         }
 
@@ -86,17 +86,29 @@ class NesfrArmNode : public rclcpp::Node
         {
             auto message = sensor_msgs::msg::JointState();
 
+            message.header.stamp = this->get_clock()->now();
+
             // publish joint_states
             RCLCPP_INFO(this->get_logger(), "_arm_stats_shm[2]=%f", _arm_stats_shm[2]*180.0f/M_PI);
-            message.header.frame_id = "nesfr_arm";
 
             message.name.push_back("shoulder_lift");
-            float shoulder_lift = M_PI/2.0f - _arm_stats_shm[2];
+            float shoulder_lift = (_min_arm_angle - _arm_stats_shm[2]);
             message.position.push_back(shoulder_lift);
 
             message.name.push_back("elbow_joint");
-            float elbow_joint_angle = 2.0f*shoulder_lift;
+            float elbow_joint_angle = -2.0f*shoulder_lift;
             message.position.push_back(elbow_joint_angle);
+
+            message.name.push_back("wrist_joint");
+            message.position.push_back(shoulder_lift);
+
+            // Dummy
+            message.name.push_back("main_cam_base_joint");
+            message.position.push_back(0.0);
+            message.name.push_back("main_cam_pan_joint");
+            message.position.push_back(0.0);
+            message.name.push_back("main_cam_tilt_joint");
+            message.position.push_back(0.0);
 
             //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _current_arm_angle);
             publisher_->publish(message);

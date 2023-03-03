@@ -21,7 +21,6 @@ def generate_launch_description():
             'namespace',
             default_value='please_set_namespace'
             )
-
     #
     # nesfr_arm_node
     #
