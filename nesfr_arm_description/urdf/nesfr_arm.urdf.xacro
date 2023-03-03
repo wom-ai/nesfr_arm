@@ -3,6 +3,8 @@
 
     <xacro:property name="M_PI" value="3.1415926535897931" />
 
+    <xacro:arg name="prefix" default=""/>
+    <xacro:property name="prefix" value="$(arg prefix)"/>
     <!--
       reference: https://answers.ros.org/question/401950/ros2-any-idea-on-how-to-pass-parameters-yaml-to-a-xacro-file-via-launch-python-script/
     -->
@@ -73,11 +75,11 @@
         <color rgba="0.1 0.1 0.1 1" />
     </material>
 
-    <link name="base_link"/>
+    <link name="${prefix}base_link"/>
 
-    <link name="robot_arm_base_link"/>
+    <link name="${prefix}robot_arm_base_link"/>
 
-    <link name="upper_arm_link">
+    <link name="${prefix}upper_arm_link">
         <visual>
             <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
             <geometry>
@@ -94,7 +96,7 @@
         </collision>
     </link>
 
-    <link name="fore_arm_link">
+    <link name="${prefix}fore_arm_link">
         <visual>
             <origin xyz="0.0 0.0 0.15" rpy="0 0 0"/>
             <geometry>
@@ -111,7 +113,7 @@
         </collision>
     </link>
 
-    <link name="wrist_link">
+    <link name="${prefix}wrist_link">
         <visual>
             <origin xyz="0.0 0.0 0.025" rpy="0 0 0"/>
             <geometry>
@@ -128,7 +130,7 @@
         </collision>
       </link>
 
-    <link name="gimbal_base_link">
+    <link name="${prefix}gimbal_base_link">
         <visual>
             <origin xyz="0.0 0.0 0.05" rpy="0 0 0"/>
             <geometry>
@@ -145,45 +147,45 @@
         </collision>
     </link>
 
-    <joint name="base-robot_arm_base_fixed_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="robot_arm_base_link"/>
+    <joint name="${prefix}base-robot_arm_base_fixed_joint" type="fixed">
+        <parent link="${prefix}base_link"/>
+        <child link="${prefix}robot_arm_base_link"/>
     </joint>
 
 
-    <joint name="shoulder_lift" type="revolute">
-        <parent link="robot_arm_base_link"/>
-        <child link="upper_arm_link"/>
+    <joint name="${prefix}shoulder_lift" type="revolute">
+        <parent link="${prefix}robot_arm_base_link"/>
+        <child link="${prefix}upper_arm_link"/>
         <axis xyz="0 1 0" />
         <limit effort="10" velocity="1"  lower="${shoulder_lift_lower_limit}" upper="${shoulder_lift_upper_limit}" />
         <origin xyz="${upper_arm_x} ${upper_arm_y} ${upper_arm_z}" rpy="${upper_arm_roll} ${upper_arm_pitch} ${upper_arm_yaw}"/>
     </joint>
 
-    <joint name="elbow_joint" type="revolute">
-        <parent link="upper_arm_link"/>
-        <child link="fore_arm_link"/>
+    <joint name="${prefix}elbow_joint" type="revolute">
+        <parent link="${prefix}upper_arm_link"/>
+        <child link="${prefix}fore_arm_link"/>
         <axis xyz="0 1 0" />
         <limit effort="10" velocity="1"  lower="${elbow_joint_lower_limit}" upper="${elbow_joint_upper_limit}" />
         <origin xyz="${fore_arm_x} ${fore_arm_y} ${fore_arm_z}" rpy="${fore_arm_roll} ${fore_arm_pitch} ${fore_arm_yaw}"/>
     </joint>
 
-    <joint name="wrist_joint" type="revolute">
-        <parent link="fore_arm_link"/>
-        <child link="wrist_link"/>
+    <joint name="${prefix}wrist_joint" type="revolute">
+        <parent link="${prefix}fore_arm_link"/>
+        <child link="${prefix}wrist_link"/>
         <axis xyz="0 1 0" />
         <limit effort="10" velocity="1"  lower="${wrist_joint_lower_limit}" upper="${wrist_joint_upper_limit}" />
         <origin xyz="${wrist_x} ${wrist_y} ${wrist_z}" rpy="${wrist_roll} ${wrist_pitch} ${wrist_yaw}"/>
       </joint>
 
-    <joint name="gimbal_base_joint" type="fixed">
-        <parent link="wrist_link"/>
-        <child link="gimbal_base_link"/>
+    <joint name="${prefix}gimbal_base_joint" type="fixed">
+        <parent link="${prefix}wrist_link"/>
+        <child link="${prefix}gimbal_base_link"/>
         <origin xyz="0.0 0.0 0.05" rpy="0 0 0"/>
     </joint>
 
-    <joint name="main_cam_base_joint" type="prismatic">
-        <parent link="gimbal_base_link"/>
-        <child link="main_cam_pan_link"/>
+    <joint name="${prefix}main_cam_base_joint" type="prismatic">
+        <parent link="${prefix}gimbal_base_link"/>
+        <child link="${prefix}main_cam_pan_link"/>
         <axis xyz="0 0 1" />
         <limit effort="10" velocity="1"  lower="0.0" upper="2.0" />
         <origin xyz="0.0 0.0 0.2" rpy="0 0 0"/>
@@ -192,29 +194,29 @@
     <!--
         Main Camera
     -->
-    <link name="main_cam_pan_link">
+    <link name="${prefix}main_cam_pan_link">
     </link>
 
-    <joint name="main_cam_pan_joint" type="revolute">
-        <parent link="main_cam_pan_link"/>
-        <child link="main_cam_tilt_link"/>
+    <joint name="${prefix}main_cam_pan_joint" type="revolute">
+        <parent link="${prefix}main_cam_pan_link"/>
+        <child link="${prefix}main_cam_tilt_link"/>
         <axis xyz="0 0 1" />
         <limit effort="10" velocity="1"  lower="-${M_PI}" upper="${M_PI}" />
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     </joint>
 
-    <link name="main_cam_tilt_link">
+    <link name="${prefix}main_cam_tilt_link">
     </link>
 
-    <joint name="main_cam_tilt_joint" type="revolute">
-        <parent link="main_cam_tilt_link"/>
-        <child link="main_cam_link"/>
+    <joint name="${prefix}main_cam_tilt_joint" type="revolute">
+        <parent link="${prefix}main_cam_tilt_link"/>
+        <child link="${prefix}main_cam_link"/>
         <axis xyz="0 1 0" />
         <limit effort="10" velocity="1"  lower="-${0.5*M_PI}" upper="${0.5*M_PI}" />
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     </joint>
 
-    <link name="main_cam_link">
+    <link name="${prefix}main_cam_link">
         <visual>
             <origin xyz="0.0 0.0 ${0.5*main_cam_size_z}" rpy="0 0 0"/>
             <geometry>
@@ -231,13 +233,13 @@
         </collision>
     </link>
 
-    <joint name="main_img_joint" type="fixed">
-        <parent link="main_cam_link"/>
-        <child link="main_img_link"/>
+    <joint name="${prefix}main_img_joint" type="fixed">
+        <parent link="${prefix}main_cam_link"/>
+        <child link="${prefix}main_img_link"/>
         <origin xyz="0.0 0.0 0.0" rpy="-${0.5*M_PI} 0 -${0.5*M_PI}"/>
     </joint>
 
-    <link name="main_img_link">
+    <link name="${prefix}main_img_link">
     </link>
 
 </robot>

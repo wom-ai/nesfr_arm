@@ -39,6 +39,9 @@ def generate_launch_description():
             "nesfr_arm_params:=",
             nesfr_arm_params,
             " ",
+            "prefix:=",
+            hostname + '/',
+            " ",
         ]
     )
     robot_description = {"robot_description": robot_description_content}
