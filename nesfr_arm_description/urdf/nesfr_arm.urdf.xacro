@@ -1,7 +1,48 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="nesfr_arm_only" >
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="nesfr_arm" >
 
     <xacro:property name="M_PI" value="3.1415926535897931" />
+
+    <!--
+      reference: https://answers.ros.org/question/401950/ros2-any-idea-on-how-to-pass-parameters-yaml-to-a-xacro-file-via-launch-python-script/
+    -->
+    <xacro:arg name="nesfr_arm_params" default=""/>
+    <xacro:property name="nesfr_arm_params_file" value="$(arg nesfr_arm_params)"/>
+    <xacro:property name="nesfr_arm_parameters" value="${load_yaml(nesfr_arm_params_file)}"/>
+    <xacro:property name="shoulder_lift_lower_limit" value="${nesfr_arm_parameters['joint_limits']['shoulder_lift']['min_position']}"/>
+    <xacro:property name="shoulder_lift_upper_limit" value="${nesfr_arm_parameters['joint_limits']['shoulder_lift']['max_position']}"/>
+    <xacro:property name="elbow_joint_lower_limit" value="${nesfr_arm_parameters['joint_limits']['elbow_joint']['min_position']}"/>
+    <xacro:property name="elbow_joint_upper_limit" value="${nesfr_arm_parameters['joint_limits']['elbow_joint']['max_position']}"/>
+    <xacro:property name="wrist_joint_lower_limit" value="${nesfr_arm_parameters['joint_limits']['wrist_joint']['min_position']}"/>
+    <xacro:property name="wrist_joint_upper_limit" value="${nesfr_arm_parameters['joint_limits']['wrist_joint']['max_position']}"/>
+
+    <xacro:property name="upper_arm_x" value="${nesfr_arm_parameters['kinematics']['upper_arm']['x']}" />
+    <xacro:property name="upper_arm_y" value="${nesfr_arm_parameters['kinematics']['upper_arm']['y']}" />
+    <xacro:property name="upper_arm_z" value="${nesfr_arm_parameters['kinematics']['upper_arm']['z']}" />
+    <xacro:property name="upper_arm_roll" value="${nesfr_arm_parameters['kinematics']['upper_arm']['roll']}" />
+    <xacro:property name="upper_arm_pitch" value="${nesfr_arm_parameters['kinematics']['upper_arm']['pitch']}" />
+    <xacro:property name="upper_arm_yaw" value="${nesfr_arm_parameters['kinematics']['upper_arm']['yaw']}" />
+
+    <xacro:property name="fore_arm_x" value="${nesfr_arm_parameters['kinematics']['fore_arm']['x']}" />
+    <xacro:property name="fore_arm_y" value="${nesfr_arm_parameters['kinematics']['fore_arm']['y']}" />
+    <xacro:property name="fore_arm_z" value="${nesfr_arm_parameters['kinematics']['fore_arm']['z']}" />
+    <xacro:property name="fore_arm_roll" value="${nesfr_arm_parameters['kinematics']['fore_arm']['roll']}" />
+    <xacro:property name="fore_arm_pitch" value="${nesfr_arm_parameters['kinematics']['fore_arm']['pitch']}" />
+    <xacro:property name="fore_arm_yaw" value="${nesfr_arm_parameters['kinematics']['fore_arm']['yaw']}" />
+
+    <xacro:property name="upper_arm_x" value="${nesfr_arm_parameters['kinematics']['upper_arm']['x']}" />
+    <xacro:property name="upper_arm_y" value="${nesfr_arm_parameters['kinematics']['upper_arm']['y']}" />
+    <xacro:property name="upper_arm_z" value="${nesfr_arm_parameters['kinematics']['upper_arm']['z']}" />
+    <xacro:property name="upper_arm_roll" value="${nesfr_arm_parameters['kinematics']['upper_arm']['roll']}" />
+    <xacro:property name="upper_arm_pitch" value="${nesfr_arm_parameters['kinematics']['upper_arm']['pitch']}" />
+    <xacro:property name="upper_arm_yaw" value="${nesfr_arm_parameters['kinematics']['upper_arm']['yaw']}" />
+
+    <xacro:property name="wrist_x" value="${nesfr_arm_parameters['kinematics']['wrist']['x']}" />
+    <xacro:property name="wrist_y" value="${nesfr_arm_parameters['kinematics']['wrist']['y']}" />
+    <xacro:property name="wrist_z" value="${nesfr_arm_parameters['kinematics']['wrist']['z']}" />
+    <xacro:property name="wrist_roll" value="${nesfr_arm_parameters['kinematics']['wrist']['roll']}" />
+    <xacro:property name="wrist_pitch" value="${nesfr_arm_parameters['kinematics']['wrist']['pitch']}" />
+    <xacro:property name="wrist_yaw" value="${nesfr_arm_parameters['kinematics']['wrist']['yaw']}" />
 
     <xacro:property name="rgbd_cam_size_x" value="0.1" />
     <xacro:property name="rgbd_cam_size_y" value="0.2" />
@@ -32,7 +73,9 @@
         <color rgba="0.1 0.1 0.1 1" />
     </material>
 
-    <link name="robot_arm_base_footprint"/>
+    <link name="base_link"/>
+
+    <link name="robot_arm_base_link"/>
 
     <link name="upper_arm_link">
         <visual>
@@ -68,29 +111,22 @@
         </collision>
     </link>
 
-    <joint name="shoulder_lift" type="revolute">
-        <parent link="robot_arm_base_footprint"/>
-        <child link="upper_arm_link"/>
-        <axis xyz="0 1 0" />
-        <limit effort="10" velocity="1"  lower="${-55.0*M_PI/180.0}" upper="0.0" />
-        <origin xyz="0.0 0.0 0.1" rpy="0 ${-5.0*M_PI/180.0} 0"/>
-    </joint>
+    <link name="wrist_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.025" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.05" />
+            </geometry>
+            <material name="white"/>
+        </visual>
 
-    <joint name="elbow_joint" type="revolute">
-        <parent link="upper_arm_link"/>
-        <child link="fore_arm_link"/>
-        <axis xyz="0 1 0" />
-        <limit effort="10" velocity="1"  lower="0.0" upper="${110.0*M_PI/180.0}" />
-        <origin xyz="0.0 0.0 0.3" rpy="0 ${10.0*M_PI/180.0} 0"/>
-    </joint>
-
-    <joint name="gimbal_base_joint" type="revolute">
-        <parent link="fore_arm_link"/>
-        <child link="gimbal_base_link"/>
-        <axis xyz="0 1 0" />
-        <limit effort="10" velocity="1"  lower="${-55.0*M_PI/180.0}" upper="0.0" />
-        <origin xyz="0.0 0.0 0.3" rpy="0 ${-5.0*M_PI/180.0} 0"/>
-    </joint>
+        <collision>
+            <origin xyz="0.0 0.0 0.025" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.05 0.05 0.05" />
+            </geometry>
+        </collision>
+      </link>
 
     <link name="gimbal_base_link">
         <visual>
@@ -108,6 +144,42 @@
             </geometry>
         </collision>
     </link>
+
+    <joint name="base-robot_arm_base_fixed_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="robot_arm_base_link"/>
+    </joint>
+
+
+    <joint name="shoulder_lift" type="revolute">
+        <parent link="robot_arm_base_link"/>
+        <child link="upper_arm_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="${shoulder_lift_lower_limit}" upper="${shoulder_lift_upper_limit}" />
+        <origin xyz="${upper_arm_x} ${upper_arm_y} ${upper_arm_z}" rpy="${upper_arm_roll} ${upper_arm_pitch} ${upper_arm_yaw}"/>
+    </joint>
+
+    <joint name="elbow_joint" type="revolute">
+        <parent link="upper_arm_link"/>
+        <child link="fore_arm_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="${elbow_joint_lower_limit}" upper="${elbow_joint_upper_limit}" />
+        <origin xyz="${fore_arm_x} ${fore_arm_y} ${fore_arm_z}" rpy="${fore_arm_roll} ${fore_arm_pitch} ${fore_arm_yaw}"/>
+    </joint>
+
+    <joint name="wrist_base_joint" type="revolute">
+        <parent link="fore_arm_link"/>
+        <child link="wrist_link"/>
+        <axis xyz="0 1 0" />
+        <limit effort="10" velocity="1"  lower="${wrist_joint_lower_limit}" upper="${wrist_joint_upper_limit}" />
+        <origin xyz="${wrist_x} ${wrist_y} ${wrist_z}" rpy="${wrist_roll} ${wrist_pitch} ${wrist_yaw}"/>
+      </joint>
+
+    <joint name="gimbal_base_joint" type="fixed">
+        <parent link="wrist_link"/>
+        <child link="gimbal_base_link"/>
+        <origin xyz="0.0 0.0 0.05" rpy="0 0 0"/>
+    </joint>
 
     <joint name="main_cam_base_joint" type="prismatic">
         <parent link="gimbal_base_link"/>

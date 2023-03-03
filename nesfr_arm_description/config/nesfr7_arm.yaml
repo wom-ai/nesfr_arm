@@ -1,0 +1,37 @@
+kinematics:
+  upper_arm:
+    x: 0.0
+    y: 0.0
+    z: 0.1
+    roll: 0.0
+    pitch: -0.08726 #-5.0*M_PI/180.0
+    yaw: 0.0
+
+  fore_arm:
+    x: 0
+    y: 0
+    z: 0.3
+    roll: 0
+    pitch: 0.17453 # 10.0*M_PI/180.0
+    yaw: 0
+
+  wrist:
+    x: 0.0
+    y: 0.0
+    z: 0.3
+    roll: 0.0
+    pitch: -0.08726 #-5.0*M_PI/180.0
+    yaw: 0.0
+
+joint_limits:
+  shoulder_lift:
+    min_position: -0.95993 # -55.0*M_PI/180.0
+    max_position: 0.0  # 0.0*M_PI/180.0
+
+  elbow_joint:
+    min_position: 0.0 # 0.0
+    max_position: 1.91986 # 110.0*M_PI/180.0
+  
+  wrist_joint:
+    min_position: -0.95993 # -55.0*M_PI/180.0
+    max_position: 0.0  # 0.0*M_PI/180.0
