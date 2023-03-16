@@ -54,18 +54,25 @@ def generate_launch_description():
     )
 
 
-    nesfr7_arm_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                PathJoinSubstitution([
-                    FindPackageShare('nesfr_arm_bringup'), 'launch',
-                    'nesfr7_arm_common.launch.py'
-                    ])
-                ]),
-            launch_arguments={
-                'namespace': namespace
-                }.items()
+    #
+    # nesfr_arm_node
+    #
+    robot_config_file = LaunchConfiguration('robot_config_file', default=[namespace, '.yaml'])
+    nesfr7_arm_params = PathJoinSubstitution(
+            [FindPackageShare("nesfr_arm_bringup"), "config", robot_config_file]
             )
 
+    nesfr7_arm_node = Node(
+        package='nesfr_arm_only_node_py',
+        executable='nesfr_arm_only_node',
+        namespace=namespace,
+        name='nesfr7_arm_node',
+        parameters=[nesfr7_arm_params],
+        #parameters=[{"param0": 1, "param1": 2}],
+        output='both',
+    )
+
+    # joy stick
     joy_params = {
             'device_id': 0,
             'device_name': "",
@@ -86,17 +93,17 @@ def generate_launch_description():
             parameters=[joy_params])
 
     # TODO
-    nesfr_system_main = ExecuteProcess(
-            cmd=[[FindExecutable(name='nesfr_system')
-                ]],
-            shell=True
-            )
+#    nesfr_system_main = ExecuteProcess(
+#            cmd=[[FindExecutable(name='nesfr_system')
+#                ]],
+#            shell=True
+#            )
 
     return LaunchDescription([
         namespace_launch_arg,
         robot_state_publisher_node,
-        nesfr7_arm_launch,
+        nesfr7_arm_node,
         joy_node,
         # TODO
-        #nesfr_system_main,
+#        nesfr_system_main,
     ])
