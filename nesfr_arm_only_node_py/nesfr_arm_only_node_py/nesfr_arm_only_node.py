@@ -147,12 +147,11 @@ class NesfrArmOnlyNode(Node):
         target_angle = self._current_arm_angle*180.0/math.pi*10000.0
 
         self.lock.acquire()
-        max_rot_speed = 200
-        max_rot_accel = 200
         _can_id = 0x0
+        max_rot_speed = 800
+        max_rot_accel = 400
         can_id = _can_id |  (SET_POS_SPD << 8)
         data = struct.pack(">LHH", int(target_angle), max_rot_speed, max_rot_accel)
-        print(len(data))
         message = can.Message(arbitration_id=can_id, is_extended_id=True, data=data)
         self.get_logger().info(f'{message}')
         self.bus.send(message, timeout=0.05)
