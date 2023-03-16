@@ -66,8 +66,10 @@ class NesfrArmOnlyNode(Node):
         self.lock = Lock()
         self.bus = can.Bus(interface='socketcan',
                       channel='can0',
-                      receive_own_messages=True)
-        can.Notifier(self.bus, [MotorAngleReader(self)])
+                      receive_own_messages=False)
+
+        self.current_arm_angle_ = None
+        self.notifier = can.Notifier(self.bus, [MotorAngleReader(self)])
         time.sleep(2)
         # read angle from motor
         self._current_arm_angle = self.current_arm_angle_
@@ -103,6 +105,8 @@ class NesfrArmOnlyNode(Node):
 #
 #        data_unpack = struct.unpack('f'*6, data[:4*6])
 #        self.get_logger().info('data: "{}"'.format(data_unpack))
+        if self.current_arm_angle_ == None:
+            return
 
         message = JointState()
         # https://answers.ros.org/question/354203/timestamp-message-ros2-python/
@@ -137,6 +141,10 @@ class NesfrArmOnlyNode(Node):
     def listener_callback(self, msg):
         #self.get_logger().info('I heard: "{}"'.format(msg))
         # TODO: fix angle coordinates for arm joint control
+
+        if self._current_arm_angle == None:
+            return
+
         self._current_arm_angle -= 0.02*msg.axes[XBOX_JOYSTICK_AXES_Y1];
 
         self._current_arm_angle = min(max(self._current_arm_angle, self.min_arm_angle), self.max_arm_angle);
@@ -157,6 +165,9 @@ class NesfrArmOnlyNode(Node):
         self.bus.send(message, timeout=0.05)
         self.lock.release()
 
+    def stop(self):
+        self.notifier.stop()
+
 def main(args=None):
     rclpy.init(args=args)
 
@@ -170,6 +181,7 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
+    nesfr_arm_only_node.stop()
     nesfr_arm_only_node.destroy_node()
     rclpy.shutdown()
 
