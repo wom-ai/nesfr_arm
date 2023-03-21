@@ -1,3 +1,4 @@
+import sys
 #import sysv_ipc
 import time
 import struct
@@ -53,8 +54,7 @@ class MotorAngleReader(can.Listener):
         data_unpack = struct.unpack('>HHHH', msg.data)
         self.node.current_arm_angle_ = data_unpack[0]*0.1*math.pi/180.0
 
-        self.node.get_logger().info('{}'.format(data_unpack[0]))
-        self.node.get_logger().info('{}'.format(self.node.current_arm_angle_))
+        self.node.get_logger().debug('self.node.current_arm_angle_={} (degrees)'.format(self.node.current_arm_angle_*180.0/math.pi))
 
         self.node.lock.release()
 
@@ -64,18 +64,21 @@ class NesfrArmOnlyNode(Node):
         super().__init__('nesfr_arm_only_node')
 
         self.lock = Lock()
+        #
+        # reference: https://m.blog.naver.com/techref/221999446630
+        #
         self.bus = can.Bus(interface='socketcan',
                       channel='can0',
                       receive_own_messages=False)
 
-        self.current_arm_angle_ = None
+        self._current_arm_angle = None # target angle to move
+        self.current_arm_angle_ = None # current angle
+
         self.notifier = can.Notifier(self.bus, [MotorAngleReader(self)])
-        time.sleep(2)
         # read angle from motor
-        self._current_arm_angle = self.current_arm_angle_
 
         self.publisher = self.create_publisher(JointState, 'joint_states', 10)
-        timer_period = 0.1  # seconds
+        timer_period = 0.02  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.subscription = self.create_subscription(Joy, 'joy', self.listener_callback, 10)
@@ -105,8 +108,12 @@ class NesfrArmOnlyNode(Node):
 #
 #        data_unpack = struct.unpack('f'*6, data[:4*6])
 #        self.get_logger().info('data: "{}"'.format(data_unpack))
+        self.get_logger().debug('timer_callback()')
         if self.current_arm_angle_ == None:
             return
+
+        if self._current_arm_angle == None:
+            self._current_arm_angle = self.current_arm_angle_
 
         message = JointState()
         # https://answers.ros.org/question/354203/timestamp-message-ros2-python/
@@ -141,6 +148,7 @@ class NesfrArmOnlyNode(Node):
     def listener_callback(self, msg):
         #self.get_logger().info('I heard: "{}"'.format(msg))
         # TODO: fix angle coordinates for arm joint control
+        self.get_logger().debug('listener_callback()')
 
         if self._current_arm_angle == None:
             return
@@ -149,34 +157,39 @@ class NesfrArmOnlyNode(Node):
 
         self._current_arm_angle = min(max(self._current_arm_angle, self.min_arm_angle), self.max_arm_angle);
 
-        self.get_logger().info('self._current_arm_angle={}'.format(self._current_arm_angle))
+        self.get_logger().debug('self._current_arm_angle={} (degrees)'.format(self._current_arm_angle*180.0/math.pi))
 
         # write angle to motors
         target_angle = self._current_arm_angle*180.0/math.pi*10000.0
 
-        self.lock.acquire()
         _can_id = 0x0
         max_rot_speed = 800
         max_rot_accel = 400
         can_id = _can_id |  (SET_POS_SPD << 8)
         data = struct.pack(">LHH", int(target_angle), max_rot_speed, max_rot_accel)
         message = can.Message(arbitration_id=can_id, is_extended_id=True, data=data)
-        self.get_logger().info(f'{message}')
-        self.bus.send(message, timeout=0.05)
-        self.lock.release()
+        self.get_logger().debug(f'message={message}')
+        try:
+            self.bus.send(message, timeout=0.1)
+        except Exception as e:
+            self.get_logger().error('{}'.format(e))
 
     def stop(self):
         self.notifier.stop()
+        self.bus.shutdown()
 
 def main(args=None):
-    rclpy.init(args=args)
+    rclpy.init(args=sys.argv)
 
     nesfr_arm_only_node = NesfrArmOnlyNode()
+    nesfr_arm_only_node.get_logger().info('args={}'.format(sys.argv))
 
     try:
         rclpy.spin(nesfr_arm_only_node)
     except KeyboardInterrupt:
         nesfr_arm_only_node.get_logger().info(' shutting down by KeyboardInterrupt')
+    except:
+        nesfr_arm_only_node.get_logger().info(' shutting down by Exception')
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
@@ -184,7 +197,3 @@ def main(args=None):
     nesfr_arm_only_node.stop()
     nesfr_arm_only_node.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()

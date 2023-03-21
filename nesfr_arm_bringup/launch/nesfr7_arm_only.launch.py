@@ -13,6 +13,8 @@ from launch.substitutions import (Command, EnvironmentVariable, FindExecutable,
                                 LaunchConfiguration, LocalSubstitution,
                                 PythonExpression, PathJoinSubstitution)
 
+os.environ['RCUTILS_COLORIZED_OUTPUT'] = '1'
+
 def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
 
@@ -62,13 +64,19 @@ def generate_launch_description():
             [FindPackageShare("nesfr_arm_bringup"), "config", robot_config_file]
             )
 
-    nesfr7_arm_node = Node(
+    #
+    # references
+    #  - https://answers.ros.org/question/311471/selecting-log-level-in-ros2-launch-file/
+    #  - https://docs.ros.org/en/humble/Tutorials/Demos/Logging-and-logger-configuration.html
+    #
+    nesfr7_arm_only_node = Node(
         package='nesfr_arm_only_node_py',
         executable='nesfr_arm_only_node',
         namespace=namespace,
-        name='nesfr7_arm_node',
+        name='nesfr7_arm_only_node',
         parameters=[nesfr7_arm_params],
         #parameters=[{"param0": 1, "param1": 2}],
+        arguments=['--ros-args', '--log-level', [namespace, '.nesfr7_arm_only_node:=info'],],
         output='both',
     )
 
@@ -102,7 +110,7 @@ def generate_launch_description():
     return LaunchDescription([
         namespace_launch_arg,
         robot_state_publisher_node,
-        nesfr7_arm_node,
+        nesfr7_arm_only_node,
         joy_node,
         # TODO
 #        nesfr_system_main,
