@@ -162,7 +162,7 @@ class NesfrArmOnlyNode(Node):
         # write angle to motors
         target_angle = self._current_arm_angle*180.0/math.pi*10000.0
 
-        _can_id = 0x0
+        _can_id = 0x4
         max_rot_speed = 800
         max_rot_accel = 400
         can_id = _can_id |  (SET_POS_SPD << 8)

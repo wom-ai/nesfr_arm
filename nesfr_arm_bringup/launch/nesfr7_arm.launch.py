@@ -9,9 +9,11 @@ from launch.actions import DeclareLaunchArgument
 from launch.actions import (DeclareLaunchArgument, EmitEvent, ExecuteProcess,
                             LogInfo, RegisterEventHandler, TimerAction)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (Command, EnvironmentVariable, FindExecutable,
+from launch.substitutions import (EnvironmentVariable, FindExecutable,
                                 LaunchConfiguration, LocalSubstitution,
                                 PythonExpression, PathJoinSubstitution)
+
+os.environ['RCUTILS_COLORIZED_OUTPUT'] = '1'
 
 def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
@@ -23,38 +25,7 @@ def generate_launch_description():
             default_value=hostname
             )
 
-    #
-    # robot_state_publisher_node
-    #
-    nesfr_arm_params = PathJoinSubstitution(
-        [FindPackageShare("nesfr_arm_description"), "config", "nesfr7_arm.yaml"]
-    )
-
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution([FindPackageShare("nesfr_arm_description"), "urdf", "nesfr_arm.urdf.xacro"]),
-            " ",
-            "nesfr_arm_params:=",
-            nesfr_arm_params,
-            " ",
-            "prefix:=",
-            hostname + '/',
-            " ",
-        ]
-    )
-    robot_description = {"robot_description": robot_description_content}
-    robot_state_publisher_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        namespace=namespace,
-        output="both",
-        parameters=[robot_description],
-    )
-
-
-    nesfr7_arm_launch = IncludeLaunchDescription(
+    nesfr7_arm_common_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 PathJoinSubstitution([
                     FindPackageShare('nesfr_arm_bringup'), 'launch',
@@ -87,7 +58,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         namespace_launch_arg,
-        robot_state_publisher_node,
-        nesfr7_arm_launch,
+        nesfr7_arm_common_launch,
         joy_node,
     ])
