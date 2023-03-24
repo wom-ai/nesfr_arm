@@ -89,7 +89,7 @@ class NesfrArmNode : public rclcpp::Node
             message.header.stamp = this->get_clock()->now();
 
             // publish joint_states
-            RCLCPP_INFO(this->get_logger(), "_arm_stats_shm[2]=%f", _arm_stats_shm[2]*180.0f/M_PI);
+            RCLCPP_DEBUG(this->get_logger(), "_arm_stats_shm[2]=%f (degrees)", _arm_stats_shm[2]*180.0f/M_PI);
 
             std::string prefix = this->get_namespace();
             prefix.erase(0, 1);
@@ -133,6 +133,7 @@ class NesfrArmNode : public rclcpp::Node
             _wheel_cmd_shm[6] = _current_arm_angle;
 
             //RCLCPP_INFO(this->get_logger(), "subscribe %s: _current_arm_angle=%f", msg->header.frame_id.c_str(), _current_arm_angle);
+            RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%f (degrees)", _current_arm_angle*180.0f/M_PI);
         }
 
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr subscription_;
