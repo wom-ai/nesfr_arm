@@ -71,11 +71,11 @@ class NesfrArmNode : public rclcpp::Node
             _arm_stats_shm = static_cast<float *>(shmat(arm_stats_shmid,(void*)0,0));
             _arm_stats_ts = reinterpret_cast<uint64_t *>(_arm_stats_shm);
 
-            this->declare_parameter("joint_limits.shoulder_lift.min_position");
-            this->declare_parameter("joint_limits.shoulder_lift.max_position");
+            _min_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.min_position", 5.0f*(M_PI/180.0f));
+            _max_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.max_position", 60.0f*(M_PI/180.0f));
 
-            this->get_parameter_or<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle, 5.0f*(M_PI/180.0f));
-            this->get_parameter_or<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle, 60.0f*(M_PI/180.0f));
+            this->get_parameter<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle);
+            this->get_parameter<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle);
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
             _current_arm_angle = _arm_stats_shm[2];
