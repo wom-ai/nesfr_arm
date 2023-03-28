@@ -11,7 +11,7 @@ from launch.event_handlers import (OnExecutionComplete, OnProcessExit,
 from launch.events import Shutdown
 
 from launch.substitutions import (Command, EnvironmentVariable, FindExecutable,
-                                LaunchConfiguration, LocalSubstitution, AnonName,
+                                LaunchConfiguration, LocalSubstitution,
                                 PythonExpression, PathJoinSubstitution)
 
 def generate_launch_description():
@@ -66,7 +66,7 @@ def generate_launch_description():
             nesfr_arm_params,
             " ",
             "prefix:=",
-            AnonName(namespace), '/',
+            namespace, '/',
             " ",
         ]
     )
