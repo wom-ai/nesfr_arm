@@ -53,7 +53,7 @@ def generate_launch_description():
     # robot_state_publisher_node
     #
     nesfr_arm_params = PathJoinSubstitution(
-        [FindPackageShare("nesfr_arm_description"), "config", "nesfr7_arm.yaml"]
+        [FindPackageShare("nesfr_arm_description"), "config", "nesfr7_arm_only.yaml"]
     )
 
     robot_description_content = Command(

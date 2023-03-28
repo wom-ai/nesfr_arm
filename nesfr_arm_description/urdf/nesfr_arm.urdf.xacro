@@ -18,6 +18,13 @@
     <xacro:property name="wrist_joint_lower_limit" value="${nesfr_arm_parameters['joint_limits']['wrist_joint']['min_position']}"/>
     <xacro:property name="wrist_joint_upper_limit" value="${nesfr_arm_parameters['joint_limits']['wrist_joint']['max_position']}"/>
 
+    <xacro:property name="robot_arm_base_x" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['x']}" />
+    <xacro:property name="robot_arm_base_y" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['y']}" />
+    <xacro:property name="robot_arm_base_z" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['z']}" />
+    <xacro:property name="robot_arm_base_roll" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['roll']}" />
+    <xacro:property name="robot_arm_base_pitch" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['pitch']}" />
+    <xacro:property name="robot_arm_base_yaw" value="${nesfr_arm_parameters['kinematics']['robot_arm_base']['yaw']}" />
+
     <xacro:property name="upper_arm_x" value="${nesfr_arm_parameters['kinematics']['upper_arm']['x']}" />
     <xacro:property name="upper_arm_y" value="${nesfr_arm_parameters['kinematics']['upper_arm']['y']}" />
     <xacro:property name="upper_arm_z" value="${nesfr_arm_parameters['kinematics']['upper_arm']['z']}" />
@@ -31,13 +38,6 @@
     <xacro:property name="fore_arm_roll" value="${nesfr_arm_parameters['kinematics']['fore_arm']['roll']}" />
     <xacro:property name="fore_arm_pitch" value="${nesfr_arm_parameters['kinematics']['fore_arm']['pitch']}" />
     <xacro:property name="fore_arm_yaw" value="${nesfr_arm_parameters['kinematics']['fore_arm']['yaw']}" />
-
-    <xacro:property name="upper_arm_x" value="${nesfr_arm_parameters['kinematics']['upper_arm']['x']}" />
-    <xacro:property name="upper_arm_y" value="${nesfr_arm_parameters['kinematics']['upper_arm']['y']}" />
-    <xacro:property name="upper_arm_z" value="${nesfr_arm_parameters['kinematics']['upper_arm']['z']}" />
-    <xacro:property name="upper_arm_roll" value="${nesfr_arm_parameters['kinematics']['upper_arm']['roll']}" />
-    <xacro:property name="upper_arm_pitch" value="${nesfr_arm_parameters['kinematics']['upper_arm']['pitch']}" />
-    <xacro:property name="upper_arm_yaw" value="${nesfr_arm_parameters['kinematics']['upper_arm']['yaw']}" />
 
     <xacro:property name="wrist_x" value="${nesfr_arm_parameters['kinematics']['wrist']['x']}" />
     <xacro:property name="wrist_y" value="${nesfr_arm_parameters['kinematics']['wrist']['y']}" />
@@ -150,6 +150,7 @@
     <joint name="${prefix}base-robot_arm_base_fixed_joint" type="fixed">
         <parent link="${prefix}base_link"/>
         <child link="${prefix}robot_arm_base_link"/>
+        <origin xyz="${robot_arm_base_x} ${robot_arm_base_y} ${robot_arm_base_z}" rpy="${robot_arm_base_roll} ${robot_arm_base_pitch} ${robot_arm_base_yaw}"/>
     </joint>
 
 
