@@ -8,6 +8,7 @@
   <license>TODO: License declaration</license>
 
   <depend>sensor_msgs</depend>
+  <depend>tf2_ros</depend>
   <depend>python3-can</depend>
   <depend>python3-sysv-ipc</depend>
 

@@ -12,6 +12,34 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from sensor_msgs.msg import JointState
 
+from geometry_msgs.msg import TransformStamped
+
+from tf2_ros import TransformBroadcaster
+
+import numpy as np
+
+def quaternion_from_euler(ai, aj, ak):
+    ai /= 2.0
+    aj /= 2.0
+    ak /= 2.0
+    ci = math.cos(ai)
+    si = math.sin(ai)
+    cj = math.cos(aj)
+    sj = math.sin(aj)
+    ck = math.cos(ak)
+    sk = math.sin(ak)
+    cc = ci*ck
+    cs = ci*sk
+    sc = si*ck
+    ss = si*sk
+
+    q = np.empty((4, ))
+    q[0] = cj*sc - sj*cs
+    q[1] = cj*ss + sj*cc
+    q[2] = cj*cs - sj*sc
+    q[3] = cj*cc + sj*ss
+
+    return q
 #
 # X: Horizontal, Y: Vertical
 #
@@ -62,6 +90,7 @@ class NesfrArmOnlyNode(Node):
 
     def __init__(self):
         super().__init__('nesfr_arm_only_node')
+        self.prefix = self.get_namespace()[1:] + '/'
 
         self.lock = Lock()
         #
@@ -102,7 +131,53 @@ class NesfrArmOnlyNode(Node):
         self.min_arm_angle = self.get_parameter('joint_limits.shoulder_lift.min_position').value
         self.max_arm_angle = self.get_parameter('joint_limits.shoulder_lift.max_position').value
 
+        # dummy location broadcaster
+        self.get_logger().info('>>> dummy location setup')
+        self.declare_parameter('default_pose.position.x', 0.0)
+        self.declare_parameter('default_pose.position.y', 0.0)
+        self.declare_parameter('default_pose.position.z', 0.0)
+
+        self.declare_parameter('default_pose.orientation.x', 0.0)
+        self.declare_parameter('default_pose.orientation.y', 0.0)
+        self.declare_parameter('default_pose.orientation.z', 0.0)
+        self.get_logger().info('<<< dummy location setup')
+
+        self.tf_broadcaster = TransformBroadcaster(self)
+
     def timer_callback(self):
+
+        ####################################################################
+        # dummy location broadcaster
+        t = TransformStamped()
+
+        # Read message content and assign it to
+        # corresponding tf variables
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = 'map'
+        t.child_frame_id = self.prefix + 'base_link'
+
+        # Turtle only exists in 2D, thus we get x and y translation
+        # coordinates from the message and set the z coordinate to 0
+        t.transform.translation.x = self.get_parameter('default_pose.position.x').value
+        t.transform.translation.y = self.get_parameter('default_pose.position.y').value
+        t.transform.translation.z = self.get_parameter('default_pose.position.z').value
+
+        # For the same reason, turtle can only rotate around one axis
+        # and this why we set rotation in x and y to 0 and obtain
+        # rotation in z axis from the message
+        q = quaternion_from_euler(  self.get_parameter('default_pose.orientation.x').value,
+                                    self.get_parameter('default_pose.orientation.y').value,
+                                    self.get_parameter('default_pose.orientation.z').value)
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
+
+        # Send the transformation
+        self.tf_broadcaster.sendTransform(t)
+
+        ####################################################################
+        # joint state publish
 #        data = self.cmdvel_shm_memory.read()
 #        print("type(data)={}".format(type(data)))
 #
@@ -119,28 +194,27 @@ class NesfrArmOnlyNode(Node):
         # https://answers.ros.org/question/354203/timestamp-message-ros2-python/
         message.header.stamp = self.get_clock().now().to_msg()
 
-        prefix = self.get_namespace()[1:] + '/'
 
-        message.name.append(prefix + "shoulder_lift")
+        message.name.append(self.prefix + "shoulder_lift")
 
         self.lock.acquire()
         shoulder_lift = (self.min_arm_angle - self.current_arm_angle_);
         self.lock.release()
         message.position.append(shoulder_lift);
 
-        message.name.append(prefix + "elbow_joint");
+        message.name.append(self.prefix + "elbow_joint");
         elbow_joint_angle = -2.0*shoulder_lift;
         message.position.append(elbow_joint_angle);
 
-        message.name.append(prefix + "wrist_joint");
+        message.name.append(self.prefix + "wrist_joint");
         message.position.append(shoulder_lift);
 
         # Dummy
-        message.name.append(prefix + "main_cam_base_joint");
+        message.name.append(self.prefix + "main_cam_base_joint");
         message.position.append(0.0);
-        message.name.append(prefix + "main_cam_pan_joint");
+        message.name.append(self.prefix + "main_cam_pan_joint");
         message.position.append(0.0);
-        message.name.append(prefix + "main_cam_tilt_joint");
+        message.name.append(self.prefix + "main_cam_tilt_joint");
         message.position.append(0.0);
 
         self.publisher.publish(message);
