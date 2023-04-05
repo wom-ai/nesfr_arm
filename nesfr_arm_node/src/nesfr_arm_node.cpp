@@ -35,7 +35,7 @@ class NesfrArmNode : public rclcpp::Node
 {
     public:
         NesfrArmNode()
-            : Node("nesfr_arm_only_node")
+            : Node("nesfr_arm_node")
         {
             publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
             timer_ = this->create_wall_timer(
