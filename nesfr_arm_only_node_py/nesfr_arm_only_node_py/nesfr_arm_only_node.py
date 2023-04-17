@@ -65,6 +65,11 @@ XBOX_JOYSTICK_BUTTONS_Y             = 4
 SET_POS_SPD = 6
 CAN_EFF_FLAG = 0x80000000
 
+ARM_MOTOR_ID=0x00
+ARM_MOTOR_MAX_ROT_SPEED=800
+ARM_MOTOR_MAX_ROT_ACCEL=400
+ID_MASK=0xFF
+
 class MotorAngleReader(can.Listener):
     def __init__(self, node):
         super().__init__()
@@ -78,6 +83,11 @@ class MotorAngleReader(can.Listener):
 #        print(data_unpack)
 #        print(data_unpack[0]*256+data_unpack[1])
         #print(data_unpack[1]*256+data_unpack[0])
+
+        if (msg.arbitration_id&ID_MASK) != ARM_MOTOR_ID:
+            return
+
+        self.node.get_logger().debug(f"arbitration_id={msg.arbitration_id: X}")
         self.node.lock.acquire()
         data_unpack = struct.unpack('>HHHH', msg.data)
         self.node.current_arm_angle_ = data_unpack[0]*0.1*math.pi/180.0
@@ -236,9 +246,9 @@ class NesfrArmOnlyNode(Node):
         # write angle to motors
         target_angle = self._current_arm_angle*180.0/math.pi*10000.0
 
-        _can_id = 0x0
-        max_rot_speed = 800
-        max_rot_accel = 400
+        _can_id = ARM_MOTOR_ID
+        max_rot_speed = ARM_MOTOR_MAX_ROT_SPEED
+        max_rot_accel = ARM_MOTOR_MAX_ROT_ACCEL
         can_id = _can_id |  (SET_POS_SPD << 8)
         data = struct.pack(">LHH", int(target_angle), max_rot_speed, max_rot_accel)
         message = can.Message(arbitration_id=can_id, is_extended_id=True, data=data)
