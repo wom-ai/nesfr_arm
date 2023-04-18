@@ -223,13 +223,26 @@ class NesfrArmNode : public rclcpp::Node
 
             int err = setsockopt(_can_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
             if(err < 0){
-                RCLCPP_ERROR(this->get_logger(), "Failed to setsockopt CAN socket! %d", err);
+                RCLCPP_ERROR(this->get_logger(), "Failed to setsockopt CAN socket! %s(%d)", strerror(errno), errno);
+                return (-1);
+            }
+
+            //
+            // references:
+            //  - https://docs.huihoo.com/doxygen/linux/kernel/3.7/structcan__filter.html
+            //
+            struct can_filter rfilter;
+            rfilter.can_id = ARM_MOTOR_ID;
+            rfilter.can_mask = ARM_MOTOR_ID_MASK;
+            err = setsockopt(_can_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+            if(err < 0){
+                RCLCPP_ERROR(this->get_logger(), "Failed to setsockopt CAN socket! %s(%d)", strerror(errno), errno);
                 return (-1);
             }
 
             err = bind(_can_fd, (struct sockaddr *) &addr, sizeof(addr));
             if(err < 0){
-                RCLCPP_ERROR(this->get_logger(), "Failed to bind CAN socket! %d", err);
+                RCLCPP_ERROR(this->get_logger(), "Failed to bind CAN socket! %s(%d)", strerror(errno), errno);
                 return (-1);
             }
 
@@ -292,8 +305,9 @@ class NesfrArmNode : public rclcpp::Node
                 auto b = std::chrono::high_resolution_clock::now();
                 while(system_on) {
                     float angle;
-                    while(_read_arm_angle(angle)) {
-                        ;
+                    if(_read_arm_angle(angle) < 0) {
+                        RCLCPP_ERROR(this->get_logger(), "_read_arm_angle() failed");
+                        return;
                     }
                     _current_arm_angle.store(angle);
 

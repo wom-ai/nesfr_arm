@@ -84,9 +84,6 @@ class MotorAngleReader(can.Listener):
 #        print(data_unpack[0]*256+data_unpack[1])
         #print(data_unpack[1]*256+data_unpack[0])
 
-        if (msg.arbitration_id&ARM_MOTOR_ID_MASK) != ARM_MOTOR_ID:
-            return
-
         self.node.get_logger().debug(f"arbitration_id={msg.arbitration_id: X}")
         self.node.lock.acquire()
         data_unpack = struct.unpack('>HHHH', msg.data)
@@ -106,8 +103,10 @@ class NesfrArmOnlyNode(Node):
         #
         # reference: https://m.blog.naver.com/techref/221999446630
         #
+        can_filters = [{"can_id": ARM_MOTOR_ID, "can_mask": ARM_MOTOR_ID_MASK, "extended": True}]
         self.bus = can.Bus(interface='socketcan',
                       channel='can0',
+                      can_filters=can_filters,
                       receive_own_messages=False)
 
         self._current_arm_angle = None # target angle to move
