@@ -96,7 +96,7 @@ class NesfrArmNode : public rclcpp::Node
             prefix += "/";
 
             message.name.push_back(prefix + "shoulder_lift");
-            float shoulder_lift = (_min_arm_angle - _arm_stats_shm[2]);
+            float shoulder_lift = -_arm_stats_shm[2];
             message.position.push_back(shoulder_lift);
 
             message.name.push_back(prefix + "elbow_joint");

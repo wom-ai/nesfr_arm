@@ -76,15 +76,12 @@ class NesfrArmNode : public rclcpp::Node
                                                                                 std::bind(&NesfrArmNode::joy_callback,
                                                                                 this, _1));
 
-
             _min_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.min_position", 5.0f*(M_PI/180.0f));
             _max_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.max_position", 60.0f*(M_PI/180.0f));
 
             this->get_parameter<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle);
             this->get_parameter<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle);
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
-
-//FIXME     _target_arm_angle = _arm_stats_shm[2];
 
             _tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
             
@@ -138,14 +135,12 @@ class NesfrArmNode : public rclcpp::Node
             auto message = sensor_msgs::msg::JointState();
             message.header.stamp = this->get_clock()->now();
 
-//            RCLCPP_DEBUG(this->get_logger(), "_arm_stats_shm[2]=%f (degrees)", _arm_stats_shm[2]*180.0f/M_PI);
-
             std::string prefix = this->get_namespace();
             prefix.erase(0, 1);
             prefix += "/";
 
             message.name.push_back(prefix + "shoulder_lift");
-            float shoulder_lift = _min_arm_angle - _current_arm_angle.load();
+            float shoulder_lift = - _current_arm_angle.load();
             message.position.push_back(shoulder_lift);
 
             message.name.push_back(prefix + "elbow_joint");
@@ -176,28 +171,16 @@ class NesfrArmNode : public rclcpp::Node
             if (isnan(_current_arm_angle))
                 return;
             // TODO: fix angle coordinates for arm joint control
-            float target_arm_angle = _current_arm_angle.load() - 0.1*msg->axes[XBOX_JOYSTICK_AXES_Y1];
-
+            float target_arm_angle = _target_arm_angle.load() - 0.02*msg->axes[XBOX_JOYSTICK_AXES_Y1];
             _target_arm_angle.store(std::clamp(target_arm_angle, _min_arm_angle, _max_arm_angle));
 
-            RCLCPP_DEBUG(this->get_logger(), "_target_arm_angle=%f (degrees)", _target_arm_angle*180.0f/M_PI);
+            //RCLCPP_DEBUG(this->get_logger(), "_target_arm_angle=%10.6f (degrees)", _target_arm_angle*180.0f/M_PI);
         }
 
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr _subscription;
 
         std::atomic<float> _target_arm_angle = {std::nanf("not initialized")}; // target angle to move
         std::atomic<float> _current_arm_angle = {std::nanf("not initialized")}; // current angle as result
-
-        uint64_t _last_read_timestamp;
-
-//        float       *_cmdvel_shm;
-//        uint64_t    *_cmdvel_ts;
-//
-//        float       *_wheel_cmd_shm;
-//        uint64_t    *_wheel_cmd_ts;
-//
-//        float       *_arm_stats_shm;
-//        uint64_t    *_arm_stats_ts;
 
         float _min_arm_angle;
         float _max_arm_angle;
@@ -265,7 +248,7 @@ class NesfrArmNode : public rclcpp::Node
                 int16_t pos_int = response.data[0] << 8 | response.data[1];
                 angle = deg_to_rad(0.1f*pos_int);
             } else {
-                //fprintf(stderr, "motor_id=%d\n", response.can_id&ARM_MOTOR_ID_MASK);
+                //RCLCPP_ERROR(this->get_logger(), "motor_id=%d", response.can_id&ARM_MOTOR_ID_MASK);
                 return -1;
             }
             return 0;
@@ -312,16 +295,17 @@ class NesfrArmNode : public rclcpp::Node
                     while(_read_arm_angle(angle)) {
                         ;
                     }
-                    //RCLCPP_INFO(node_ptr->get_logger(), "angle=%f", angle);
-
                     _current_arm_angle.store(angle);
-                    RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%f (degrees)", _current_arm_angle*180.0f/M_PI);
 
-                    if (!isnan(_target_arm_angle))
-                        if (_write_arm_angle(_target_arm_angle.load()) < 0) {
-                            RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
-                            return;
-                        }
+                    //RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%10.6f (degrees)", _current_arm_angle*180.0f/M_PI);
+                    RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%10.6f _target_arm_angle=%10.6f (degrees)", _current_arm_angle*180.0f/M_PI, _target_arm_angle*180.0f/M_PI);
+
+                    if (isnan(_target_arm_angle))
+                        _target_arm_angle.store(std::clamp(_current_arm_angle.load(), _min_arm_angle, _max_arm_angle));
+                    if (_write_arm_angle(_target_arm_angle.load()) < 0) {
+                        RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
+                        return;
+                    }
 
                     tc_frame_count++;
                     auto e = std::chrono::high_resolution_clock::now();

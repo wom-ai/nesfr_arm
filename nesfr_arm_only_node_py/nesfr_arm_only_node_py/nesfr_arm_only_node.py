@@ -208,7 +208,7 @@ class NesfrArmOnlyNode(Node):
         message.name.append(self.prefix + "shoulder_lift")
 
         self.lock.acquire()
-        shoulder_lift = (self.min_arm_angle - self.current_arm_angle_);
+        shoulder_lift = - self._current_arm_angle;
         self.lock.release()
         message.position.append(shoulder_lift);
 
