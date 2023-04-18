@@ -26,7 +26,7 @@ def generate_launch_description():
             default_value='please_set_namespace'
             )
     #
-    # nesfr_arm_only_node_py
+    # nesfr_arm_only_node
     #
     robot_config_file = LaunchConfiguration('robot_config_file', default=[namespace, '.yaml'])
     nesfr7_arm_params = PathJoinSubstitution(
@@ -38,8 +38,8 @@ def generate_launch_description():
     #  - https://answers.ros.org/question/311471/selecting-log-level-in-ros2-launch-file/
     #  - https://docs.ros.org/en/humble/Tutorials/Demos/Logging-and-logger-configuration.html
     #
-    nesfr_arm_only_node_py = Node(
-        package='nesfr_arm_only_node_py',
+    nesfr_arm_only_node = Node(
+        package='nesfr_arm_node',
         executable='nesfr_arm_only_node',
         namespace=namespace,
         name='nesfr7_arm_only_node',
@@ -83,12 +83,12 @@ def generate_launch_description():
     return LaunchDescription([
         namespace_launch_arg,
         robot_state_publisher_node,
-        nesfr_arm_only_node_py,
+        nesfr_arm_only_node,
         RegisterEventHandler(
             OnProcessExit(
-                target_action=nesfr_arm_only_node_py,
+                target_action=nesfr_arm_only_node,
                 on_exit=[
-                    LogInfo(msg=(' closed nesfr_arm_only_node_py')),
+                    LogInfo(msg=(' closed nesfr_arm_only_node')),
                     EmitEvent(event=Shutdown(reason='Window closed'))
                     ]
                 )

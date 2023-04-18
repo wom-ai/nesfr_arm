@@ -66,9 +66,9 @@ SET_POS_SPD = 6
 CAN_EFF_FLAG = 0x80000000
 
 ARM_MOTOR_ID=0x00
+ARM_MOTOR_ID_MASK=0xFF
 ARM_MOTOR_MAX_ROT_SPEED=800
 ARM_MOTOR_MAX_ROT_ACCEL=400
-ID_MASK=0xFF
 
 class MotorAngleReader(can.Listener):
     def __init__(self, node):
@@ -84,7 +84,7 @@ class MotorAngleReader(can.Listener):
 #        print(data_unpack[0]*256+data_unpack[1])
         #print(data_unpack[1]*256+data_unpack[0])
 
-        if (msg.arbitration_id&ID_MASK) != ARM_MOTOR_ID:
+        if (msg.arbitration_id&ARM_MOTOR_ID_MASK) != ARM_MOTOR_ID:
             return
 
         self.node.get_logger().debug(f"arbitration_id={msg.arbitration_id: X}")

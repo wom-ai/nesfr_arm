@@ -21,7 +21,10 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 add_executable(nesfr_arm_node src/nesfr_arm_node.cpp)
 ament_target_dependencies(nesfr_arm_node
@@ -36,6 +39,22 @@ target_include_directories(nesfr_arm_node PUBLIC
 install(TARGETS nesfr_arm_node
   DESTINATION lib/${PROJECT_NAME})
 
+add_executable(nesfr_arm_only_node src/nesfr_arm_only_node.cpp)
+ament_target_dependencies(nesfr_arm_only_node
+    "rclcpp"
+    "geometry_msgs"
+    "sensor_msgs"
+    "tf2"
+    "tf2_ros"
+    )
+
+target_include_directories(nesfr_arm_only_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
+install(TARGETS nesfr_arm_only_node
+
+  DESTINATION lib/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
