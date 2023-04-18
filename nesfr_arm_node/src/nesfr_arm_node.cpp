@@ -78,7 +78,7 @@ class NesfrArmNode : public rclcpp::Node
             this->get_parameter<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle);
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
-            _current_arm_angle = _arm_stats_shm[2];
+            _target_arm_angle = _arm_stats_shm[2];
         }
 
     private:
@@ -89,7 +89,7 @@ class NesfrArmNode : public rclcpp::Node
             message.header.stamp = this->get_clock()->now();
 
             // publish joint_states
-            RCLCPP_DEBUG(this->get_logger(), "_arm_stats_shm[2]=%f (degrees)", _arm_stats_shm[2]*180.0f/M_PI);
+//            RCLCPP_DEBUG(this->get_logger(), "_arm_stats_shm[2]=%f (degrees)", _arm_stats_shm[2]*180.0f/M_PI);
 
             std::string prefix = this->get_namespace();
             prefix.erase(0, 1);
@@ -114,7 +114,7 @@ class NesfrArmNode : public rclcpp::Node
             message.name.push_back(prefix + "main_cam_tilt_joint");
             message.position.push_back(0.0);
 
-            //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _current_arm_angle);
+            //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _target_arm_angle);
             publisher_->publish(message);
         }
 
@@ -124,21 +124,22 @@ class NesfrArmNode : public rclcpp::Node
         void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
         {
             // TODO: fix angle coordinates for arm joint control
-            _current_arm_angle -= 0.02*msg->axes[XBOX_JOYSTICK_AXES_Y1];
+            _target_arm_angle -= 0.02*msg->axes[XBOX_JOYSTICK_AXES_Y1];
 
-            _current_arm_angle = std::clamp(_current_arm_angle, _min_arm_angle, _max_arm_angle);
+            _target_arm_angle = std::clamp(_target_arm_angle, _min_arm_angle, _max_arm_angle);
 
             // set values into motors
-            _cmdvel_shm[5] = _current_arm_angle;
-            _wheel_cmd_shm[6] = _current_arm_angle;
 
-            //RCLCPP_INFO(this->get_logger(), "subscribe %s: _current_arm_angle=%f", msg->header.frame_id.c_str(), _current_arm_angle);
-            RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%f (degrees)", _current_arm_angle*180.0f/M_PI);
+            _cmdvel_shm[5] = _target_arm_angle;
+            //_wheel_cmd_shm[6] = _target_arm_angle;
+
+            //RCLCPP_INFO(this->get_logger(), "subscribe %s: _target_arm_angle=%f", msg->header.frame_id.c_str(), _target_arm_angle);
+            RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%10.6f _target_arm_angle=%10.6f (degrees)", _arm_stats_shm[2]*180.0f/M_PI,  _target_arm_angle*180.0f/M_PI);
         }
 
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr subscription_;
 
-        float _current_arm_angle;
+        float _target_arm_angle;
 
         uint64_t _last_read_timestamp;
 

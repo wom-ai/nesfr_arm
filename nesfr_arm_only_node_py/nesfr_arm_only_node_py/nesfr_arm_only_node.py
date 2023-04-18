@@ -82,14 +82,14 @@ class MotorAngleReader(can.Listener):
 #        data_unpack = struct.unpack('B'*8, msg.data)
 #        print(data_unpack)
 #        print(data_unpack[0]*256+data_unpack[1])
-        #print(data_unpack[1]*256+data_unpack[0])
+#        print(data_unpack[1]*256+data_unpack[0])
 
-        self.node.get_logger().debug(f"arbitration_id={msg.arbitration_id: X}")
+#        self.node.get_logger().debug(f"arbitration_id={msg.arbitration_id: X}")
         self.node.lock.acquire()
         data_unpack = struct.unpack('>HHHH', msg.data)
-        self.node.current_arm_angle_ = data_unpack[0]*0.1*math.pi/180.0
+        self.node._current_arm_angle = data_unpack[0]*0.1*math.pi/180.0
 
-        self.node.get_logger().debug('self.node.current_arm_angle_={} (degrees)'.format(self.node.current_arm_angle_*180.0/math.pi))
+#        self.node.get_logger().debug('self.node._current_arm_angle={} (degrees)'.format(self.node._current_arm_angle*180.0/math.pi))
 
         self.node.lock.release()
 
@@ -109,8 +109,8 @@ class NesfrArmOnlyNode(Node):
                       can_filters=can_filters,
                       receive_own_messages=False)
 
-        self._current_arm_angle = None # target angle to move
-        self.current_arm_angle_ = None # current angle
+        self._target_arm_angle = None # target angle to move
+        self._current_arm_angle = None # current angle
 
         self.notifier = can.Notifier(self.bus, [MotorAngleReader(self)])
         # read angle from motor
@@ -192,12 +192,12 @@ class NesfrArmOnlyNode(Node):
 #
 #        data_unpack = struct.unpack('f'*6, data[:4*6])
 #        self.get_logger().info('data: "{}"'.format(data_unpack))
-        self.get_logger().debug('timer_callback()')
-        if self.current_arm_angle_ == None:
+#        self.get_logger().debug('timer_callback()')
+        if self._current_arm_angle == None:
             return
 
-        if self._current_arm_angle == None:
-            self._current_arm_angle = self.current_arm_angle_
+        if self._target_arm_angle == None:
+            self._target_arm_angle = self._current_arm_angle
 
         message = JointState()
         # https://answers.ros.org/question/354203/timestamp-message-ros2-python/
@@ -229,21 +229,21 @@ class NesfrArmOnlyNode(Node):
         self.publisher.publish(message);
 
     def listener_callback(self, msg):
-        #self.get_logger().info('I heard: "{}"'.format(msg))
-        # TODO: fix angle coordinates for arm joint control
-        self.get_logger().debug('listener_callback()')
+#        self.get_logger().info('I heard: "{}"'.format(msg))
+#        # TODO: fix angle coordinates for arm joint control
+#        self.get_logger().debug('listener_callback()')
 
-        if self._current_arm_angle == None:
+        if self._target_arm_angle == None:
             return
 
-        self._current_arm_angle -= 0.02*msg.axes[XBOX_JOYSTICK_AXES_Y1];
+        self._target_arm_angle -= 0.02*msg.axes[XBOX_JOYSTICK_AXES_Y1];
 
-        self._current_arm_angle = min(max(self._current_arm_angle, self.min_arm_angle), self.max_arm_angle);
+        self._target_arm_angle = min(max(self._target_arm_angle, self.min_arm_angle), self.max_arm_angle);
 
-        self.get_logger().debug('self._current_arm_angle={} (degrees)'.format(self._current_arm_angle*180.0/math.pi))
+        self.get_logger().debug('_current_arm_angle={} _target_arm_angle={} (degrees)'.format(self._current_arm_angle*180.0/math.pi, self._target_arm_angle*180.0/math.pi))
 
         # write angle to motors
-        target_angle = self._current_arm_angle*180.0/math.pi*10000.0
+        target_angle = self._target_arm_angle*180.0/math.pi*10000.0
 
         _can_id = ARM_MOTOR_ID
         max_rot_speed = ARM_MOTOR_MAX_ROT_SPEED
