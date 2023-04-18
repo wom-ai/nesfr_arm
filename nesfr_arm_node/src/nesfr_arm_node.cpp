@@ -130,6 +130,8 @@ class NesfrArmNode : public rclcpp::Node
 
             // set values into motors
 
+            uint64_t ts = this->now().nanoseconds();
+            memcpy(&_cmdvel_shm[0], &ts, sizeof(ts));
             _cmdvel_shm[5] = _target_arm_angle;
             //_wheel_cmd_shm[6] = _target_arm_angle;
 
