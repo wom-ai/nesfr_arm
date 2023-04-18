@@ -67,7 +67,7 @@ class NesfrArmNode : public rclcpp::Node
         NesfrArmNode()
             : Node("nesfr_arm_node")
         {
-            publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+            _publisher = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
             _timer = this->create_wall_timer(   100ms,
                                                 std::bind(&NesfrArmNode::_timercallback,
                                                 this));
@@ -159,12 +159,8 @@ class NesfrArmNode : public rclcpp::Node
             message.position.push_back(0.0);
 
             //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _target_arm_angle);
-            publisher_->publish(message);
+            _publisher->publish(message);
         }
-
-        std::unique_ptr<tf2_ros::TransformBroadcaster> _tf_broadcaster;
-        rclcpp::TimerBase::SharedPtr _timer;
-        rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher_;
 
         void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
         {
@@ -177,6 +173,9 @@ class NesfrArmNode : public rclcpp::Node
             //RCLCPP_DEBUG(this->get_logger(), "_target_arm_angle=%10.6f (degrees)", _target_arm_angle*180.0f/M_PI);
         }
 
+        std::unique_ptr<tf2_ros::TransformBroadcaster> _tf_broadcaster;
+        rclcpp::TimerBase::SharedPtr _timer;
+        rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr _publisher;
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr _subscription;
 
         std::atomic<float> _target_arm_angle = {std::nanf("not initialized")}; // target angle to move
@@ -251,9 +250,13 @@ class NesfrArmNode : public rclcpp::Node
 
         int _read_arm_angle(float &angle) {
             struct can_frame response;
-            unsigned int nbytes = read(_can_fd, &response, sizeof(struct can_frame));
-            if(nbytes < sizeof(struct can_frame)){
-                RCLCPP_ERROR(this->get_logger(), "Failed to read CAN socket! %d", errno);
+            int nbytes = read(_can_fd, &response, sizeof(struct can_frame));
+            if(nbytes < 0){
+                RCLCPP_ERROR(this->get_logger(), "Failed to read CAN socket! %s(%d)", strerror(errno), errno);
+                return -1;
+            }
+            if(nbytes < int(sizeof(struct can_frame))){
+                RCLCPP_ERROR(this->get_logger(), "Failed to read CAN socket incompletely!");
                 return -1;
             }
 
@@ -261,7 +264,7 @@ class NesfrArmNode : public rclcpp::Node
                 int16_t pos_int = response.data[0] << 8 | response.data[1];
                 angle = deg_to_rad(0.1f*pos_int);
             } else {
-                //RCLCPP_ERROR(this->get_logger(), "motor_id=%d", response.can_id&ARM_MOTOR_ID_MASK);
+                RCLCPP_WARN(this->get_logger(), "motor_id=%d", response.can_id&ARM_MOTOR_ID_MASK);
                 return -1;
             }
             return 0;
@@ -283,9 +286,13 @@ class NesfrArmNode : public rclcpp::Node
             cmd.data[6] = _max_rot_accel >> 8;
             cmd.data[7] = 0xFF&_max_rot_accel;
             cmd.can_dlc = 8;
-            unsigned int nbytes = write(_can_fd, &cmd, sizeof(struct can_frame));
-            if(nbytes < sizeof(struct can_frame)){
-                RCLCPP_ERROR(this->get_logger(), "Failed to write CAN socket! %d", errno);
+            int nbytes = write(_can_fd, &cmd, sizeof(struct can_frame));
+            if(nbytes < 0){
+                RCLCPP_ERROR(this->get_logger(), "Failed to write CAN socket! %s(%d)", strerror(errno), errno);
+                return -1;
+            }
+            if(nbytes < int(sizeof(struct can_frame))){
+                RCLCPP_ERROR(this->get_logger(), "Failed to write CAN socket incompletely!");
                 return -1;
             }
 
