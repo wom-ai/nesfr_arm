@@ -314,7 +314,7 @@ class NesfrArmNode : public rclcpp::Node
                     float angle;
                     if(_read_arm_angle(angle) < 0) {
                         RCLCPP_ERROR(this->get_logger(), "_read_arm_angle() failed");
-                        return;
+                        break;
                     }
                     _current_arm_angle.store(angle);
 
@@ -325,7 +325,7 @@ class NesfrArmNode : public rclcpp::Node
                         _target_arm_angle.store(std::clamp(_current_arm_angle.load(), _min_arm_angle, _max_arm_angle));
                     if (_write_arm_angle(_target_arm_angle.load()) < 0) {
                         RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
-                        return;
+                        break;
                     }
 
                     tc_frame_count++;
