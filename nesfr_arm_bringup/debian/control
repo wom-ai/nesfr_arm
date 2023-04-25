@@ -1,0 +1,23 @@
+source: ros-galactic-nesfr-arm-bringup
+Section: misc
+Priority: optional
+Maintainer: Jaeyoung Lee <jy@wom.ai>
+Build-Depends:  debhelper-compat (= 12),
+                ros-galactic-ament-cmake,
+                ros-galactic-nesfr-arm-description,
+                ros-galactic-nesfr-arm-node,
+                ros-galactic-ros-workspace
+Standards-Version: 4.5.0
+Homepage:
+
+Package: ros-galactic-nesfr-arm-bringup
+Architecture: any
+Multi-Arch: foreign
+Depends:  ${misc:Depends},
+          ${shlibs:Depends},
+          ros-galactic-launch,
+          ros-galactic-launch-ros,
+          ros-galactic-nesfr-arm-description,
+          ros-galactic-nesfr-arm-node,
+          ros-galactic-ros-workspace
+Description: ros2 application for NESFR_VR

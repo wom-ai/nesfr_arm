@@ -1,0 +1,6 @@
+ros-galactic-nesfr-arm-node (0.0.0-0) UNRELEASED; urgency=low
+
+  * Initial release. Closes: #nnnn
+    <nnnn is the bug number of your ITP>
+
+ -- Jaeyoung Lee <jy@wom.ai>  Tue, 25 Apr 2023 00:00:00 -0000
