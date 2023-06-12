@@ -275,6 +275,8 @@ class NesfrArmNode : public rclcpp::Node
             memset(&cmd, 0, sizeof(cmd));
             cmd.can_id = _can_id | CAN_EFF_FLAG | (SET_POS_SPD << 8);
 
+            RCLCPP_INFO(this->get_logger(), "_write_arm_angle(%f)", rad_to_deg(angle));
+
             float angle_ = rad_to_deg(angle) * 10000.0f;
             int32_t int_angle = static_cast<int32_t>(angle_);
             cmd.data[0] = int_angle >> 24;
@@ -300,6 +302,36 @@ class NesfrArmNode : public rclcpp::Node
         }
 
     public:
+
+        void move_to_target_angle(const float target_angle)
+        {
+            for (int i = 0; i < 100; i++) {
+                float angle;
+                float _target_angle;
+                float max_angle_step = deg_to_rad(1.0f);
+                if(_read_arm_angle(angle) < 0) {
+                    RCLCPP_ERROR(this->get_logger(), "_read_arm_angle() failed");
+                }
+#if 0
+                if (std::abs(target_angle - angle) > max_angle_step) {
+                    _target_angle = angle + std::copysign(max_angle_step, (target_angle - angle));
+                } else
+                    _target_angle = target_angle;
+
+                RCLCPP_INFO(this->get_logger(), "angle=%f, _target_angle=%f", angle, _target_angle);
+
+                if (_write_arm_angle(std::clamp(_target_angle, _min_arm_angle, _max_arm_angle)) < 0) {
+                  RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
+                }
+#else
+                if (_write_arm_angle(std::clamp(target_angle, _min_arm_angle, _max_arm_angle)) < 0) {
+                  RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
+                }
+#endif
+                //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        }
+
         void can_ctrl_thread_func(void) {
             fprintf(stderr, ">>> CAN Ctrl Thread\n");
             if (_init_can() < 0) {
@@ -307,6 +339,8 @@ class NesfrArmNode : public rclcpp::Node
                 return;
             }
 
+            const float init_angle = (_min_arm_angle + _max_arm_angle)/2.0f;
+            move_to_target_angle(init_angle);
             try {
                 unsigned int tc_frame_count = 0;
                 auto b = std::chrono::high_resolution_clock::now();
@@ -335,6 +369,7 @@ class NesfrArmNode : public rclcpp::Node
                         float fps = 1000.0*tc_frame_count/elapsed;
                         RCLCPP_INFO(this->get_logger(), "\t>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                         RCLCPP_INFO(this->get_logger(), "\t    Read fps: %6f hz\telapsed= %9f milliseconds/ %d", fps, elapsed, tc_frame_count);
+                        RCLCPP_INFO(this->get_logger(), "_current_arm_angle=%10.6f _target_arm_angle=%10.6f (degrees)", _current_arm_angle*180.0f/M_PI, _target_arm_angle*180.0f/M_PI);
                         RCLCPP_INFO(this->get_logger(), "\t>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                         //reset
                         tc_frame_count = 0;
@@ -344,7 +379,8 @@ class NesfrArmNode : public rclcpp::Node
             } catch (std::exception &e) {
                 RCLCPP_ERROR(this->get_logger(), "%s", e.what());
             }
-                
+
+            move_to_target_angle(init_angle);
             system_on.store(false);
 
             fprintf(stderr, "<<< CAN Ctrl Thread\n");
