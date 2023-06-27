@@ -1,0 +1,23 @@
+nesfr7_arm_01/nesfr7_arm_only_node:
+  ros__parameters:
+    #
+    # reference: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/blob/foxy/ur_description/config/ur3/joint_limits.yaml
+    #
+    joint_limits:
+      shoulder_lift:
+        min_position: 0.13962 # 8.0*M_PI/180
+        max_position: 1.04719 # 60.0*M_PI/180
+
+      elbow_joint:
+        min_position: 0.17453 # 10.0*M_PI/180
+        max_position: 2.09439 # 120.0*M_PI/180
+
+    default_pose:
+      position:
+        x: 1.0
+        y: 1.0
+        z: 0.0
+      orientation:  # Euler Angle
+        x: 0.0      # roll
+        y: 0.0      # pitch
+        z: 1.04719  # yaw 60.0*M_PI/180
