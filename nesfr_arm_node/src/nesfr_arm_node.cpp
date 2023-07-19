@@ -133,7 +133,7 @@ class NesfrArmNode : public rclcpp::Node
             uint64_t ts = this->now().nanoseconds();
             memcpy(&_cmdvel_shm[0], &ts, sizeof(ts));
             _cmdvel_shm[5] = _target_arm_angle;
-            //_wheel_cmd_shm[6] = _target_arm_angle;
+            _wheel_cmd_shm[6] = _target_arm_angle;
 
             //RCLCPP_INFO(this->get_logger(), "subscribe %s: _target_arm_angle=%f", msg->header.frame_id.c_str(), _target_arm_angle);
             RCLCPP_DEBUG(this->get_logger(), "_current_arm_angle=%10.6f _target_arm_angle=%10.6f (degrees)", _arm_stats_shm[2]*180.0f/M_PI,  _target_arm_angle*180.0f/M_PI);
