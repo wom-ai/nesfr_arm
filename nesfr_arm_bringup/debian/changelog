@@ -1,3 +1,7 @@
+ros-galactic-nesfr-arm-bringup (0.1.0-0) UNRELEASED; urgency=low
+
+ -- Jaeyoung Lee <jy@wom.ai>  Wed, 26 Jul 2023 00:00:00 -0000
+
 ros-galactic-nesfr-arm-bringup (0.0.0-0) UNRELEASED; urgency=low
 
   * Initial release. Closes: #nnnn
