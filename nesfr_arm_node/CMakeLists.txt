@@ -26,6 +26,42 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 
+find_package (Git)
+if (GIT_FOUND)
+    message("git found: ${GIT_EXECUTABLE} in version ${GIT_VERSION_STRING}")
+    # reference: https://stackoverflow.com/questions/51727566/how-to-make-git-commit-hash-available-in-c-code-without-needless-recompiling
+    execute_process(
+        COMMAND git rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    # Get the latest commit hash
+    execute_process(
+        COMMAND git rev-parse HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    # reference: https://stackoverflow.com/questions/1404796/how-can-i-get-the-latest-tag-name-in-current-branch-in-git
+    # Get the latest tag
+    execute_process(
+        COMMAND git describe --tags --dirty
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_CURRENT_TAG
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message("GIT_CURRENT_TAG: ${GIT_CURRENT_TAG}")
+
+    execute_process(
+        COMMAND git rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif (GIT_FOUND)
+
+# reference: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
+cmake_host_system_information(RESULT BUILD_HOSTNAME QUERY HOSTNAME)
+
 add_executable(nesfr_arm_node src/nesfr_arm_node.cpp)
 ament_target_dependencies(nesfr_arm_node
     "rclcpp"
@@ -35,6 +71,15 @@ ament_target_dependencies(nesfr_arm_node
 target_include_directories(nesfr_arm_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+target_compile_definitions(
+    nesfr_arm_node PUBLIC
+    __BUILD_USER__="$ENV{USER}"
+    __BUILD_HOSTNAME__="${BUILD_HOSTNAME}"
+    __GIT_BRANCH__="${GIT_BRANCH}"
+    __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
+    __GIT_CURRENT_TAG__="${GIT_CURRENT_TAG}"
+    )
 
 install(TARGETS nesfr_arm_node
   DESTINATION lib/${PROJECT_NAME})
@@ -51,6 +96,15 @@ ament_target_dependencies(nesfr_arm_only_node
 target_include_directories(nesfr_arm_only_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+target_compile_definitions(
+    nesfr_arm_only_node PUBLIC
+    __BUILD_USER__="$ENV{USER}"
+    __BUILD_HOSTNAME__="${BUILD_HOSTNAME}"
+    __GIT_BRANCH__="${GIT_BRANCH}"
+    __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
+    __GIT_CURRENT_TAG__="${GIT_CURRENT_TAG}"
+    )
 
 install(TARGETS nesfr_arm_only_node
 

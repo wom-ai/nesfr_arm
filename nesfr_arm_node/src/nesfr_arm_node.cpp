@@ -31,6 +31,19 @@ using std::placeholders::_1;
 #define XBOX_JOYSTICK_BUTTONS_X             3
 #define XBOX_JOYSTICK_BUTTONS_Y             4
 
+#define LOG_INFO(fmt, ...)  \
+    std::fprintf(stdout, "[info] " fmt "\n", ##__VA_ARGS__); std::fflush(stdout);
+
+static void print_build_info(void)
+{
+    LOG_INFO("Built by %s on %s", __BUILD_USER__, __BUILD_HOSTNAME__);
+    LOG_INFO("GCC __VERSION__=%s", __VERSION__);
+    LOG_INFO("CPP STANDARD __cplusplus=%ld", __cplusplus);
+    LOG_INFO("Build TIme: %s %s", __DATE__, __TIME__);
+    LOG_INFO("Git Branch=[%s](%s)", __GIT_BRANCH__, __GIT_CURRENT_TAG__);
+    LOG_INFO("    +-> commit %s", __GIT_COMMIT_HASH__);
+}
+
 class NesfrArmNode : public rclcpp::Node
 {
     public:
@@ -79,6 +92,8 @@ class NesfrArmNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
             _target_arm_angle = _arm_stats_shm[2];
+
+            RCLCPP_INFO(this->get_logger(), "Initialization completed");
         }
 
     private:
@@ -161,6 +176,7 @@ class NesfrArmNode : public rclcpp::Node
 
 int main(int argc, char * argv[])
 {
+    print_build_info();
     rclcpp::init(argc, argv);
     rclcpp::Node::SharedPtr node_ptr = std::make_shared<NesfrArmNode>();
     rclcpp::spin(node_ptr);

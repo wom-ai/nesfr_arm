@@ -49,6 +49,19 @@ using std::placeholders::_1;
 #define ARM_MOTOR_MAX_ROT_SPEED     800
 #define ARM_MOTOR_MAX_ROT_ACCEL     400
 
+#define LOG_INFO(fmt, ...)  \
+    std::fprintf(stdout, "[info] " fmt "\n", ##__VA_ARGS__); std::fflush(stdout);
+
+static void print_build_info(void)
+{
+    LOG_INFO("Built by %s on %s", __BUILD_USER__, __BUILD_HOSTNAME__);
+    LOG_INFO("GCC __VERSION__=%s", __VERSION__);
+    LOG_INFO("CPP STANDARD __cplusplus=%ld", __cplusplus);
+    LOG_INFO("Build TIme: %s %s", __DATE__, __TIME__);
+    LOG_INFO("Git Branch=[%s](%s)", __GIT_BRANCH__, __GIT_CURRENT_TAG__);
+    LOG_INFO("    +-> commit %s", __GIT_COMMIT_HASH__);
+}
+
 static inline float  deg_to_rad(float deg){
   return deg * M_PI / 180.0;
 }
@@ -84,7 +97,7 @@ class NesfrArmNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
             _tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-            
+
             this->declare_parameter<double>("default_pose.position.x", 0.0);
             this->declare_parameter<double>("default_pose.position.y", 0.0);
             this->declare_parameter<double>("default_pose.position.z", 0.0);
@@ -120,6 +133,8 @@ class NesfrArmNode : public rclcpp::Node
             default_transform_stamped.transform.rotation.y = q.y();
             default_transform_stamped.transform.rotation.z = q.z();
             default_transform_stamped.transform.rotation.w = q.w();
+
+            RCLCPP_INFO(this->get_logger(), "Initialization completed");
         }
 
     private:
@@ -185,7 +200,7 @@ class NesfrArmNode : public rclcpp::Node
         float _max_arm_angle;
 
         geometry_msgs::msg::TransformStamped default_transform_stamped;
-       
+
         //-----------------------------------------------------------------------------
         // can ctrl part
         //-----------------------------------------------------------------------------
@@ -394,6 +409,7 @@ class NesfrArmNode : public rclcpp::Node
 
 int main(int argc, char * argv[])
 {
+    print_build_info();
     fprintf(stderr, ">>> Main Thread\n");
     rclcpp::init(argc, argv);
 
