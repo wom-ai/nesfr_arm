@@ -9,6 +9,9 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
+
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+
     # General arguments
     description_package = LaunchConfiguration("description_package")
     description_package_arg = DeclareLaunchArgument(
@@ -53,6 +56,7 @@ def generate_launch_description():
             "nesfr_arm_params:=",
             nesfr_arm_params,
             " ",
+            " ",
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -64,20 +68,25 @@ def generate_launch_description():
     joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
+        namespace=LaunchConfiguration('namespace'),
         output="screen",
     )
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        namespace=LaunchConfiguration('namespace'),
         output="both",
         parameters=[robot_description],
+        remappings=remappings,
     )
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
+        namespace=LaunchConfiguration('namespace'),
         output="both",
         arguments=["-d", rviz_config_file],
+        remappings=remappings,
     )
 
     nodes_to_start = [
