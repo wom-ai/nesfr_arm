@@ -93,6 +93,9 @@ class NesfrArmNode : public rclcpp::Node
 
             _target_arm_angle = _arm_stats_shm[2];
 
+            _joint_state_prefix = this->declare_parameter<std::string>("joint_state_prefix", "");
+            this->get_parameter<std::string>("joint_state_prefix", _joint_state_prefix);
+
             RCLCPP_INFO(this->get_logger(), "Initialization completed");
         }
 
@@ -106,27 +109,27 @@ class NesfrArmNode : public rclcpp::Node
             // publish joint_states
 //            RCLCPP_DEBUG(this->get_logger(), "_arm_stats_shm[2]=%f (degrees)", _arm_stats_shm[2]*180.0f/M_PI);
 
-            std::string prefix = this->get_namespace();
-            prefix.erase(0, 1);
-            prefix += "/";
+//            std::string prefix = this->get_namespace();
+//            prefix.erase(0, 1);
+//            prefix += "/";
 
-            message.name.push_back(prefix + "shoulder_lift");
+            message.name.push_back(_joint_state_prefix + "shoulder_lift");
             float shoulder_lift = -_arm_stats_shm[2];
             message.position.push_back(shoulder_lift);
 
-            message.name.push_back(prefix + "elbow_joint");
+            message.name.push_back(_joint_state_prefix + "elbow_joint");
             float elbow_joint_angle = -2.0f*shoulder_lift;
             message.position.push_back(elbow_joint_angle);
 
-            message.name.push_back(prefix + "wrist_joint");
+            message.name.push_back(_joint_state_prefix + "wrist_joint");
             message.position.push_back(shoulder_lift);
 
             // Dummy
-            message.name.push_back(prefix + "main_cam_base_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_base_joint");
             message.position.push_back(0.0);
-            message.name.push_back(prefix + "main_cam_pan_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_pan_joint");
             message.position.push_back(0.0);
-            message.name.push_back(prefix + "main_cam_tilt_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_tilt_joint");
             message.position.push_back(0.0);
 
             //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _target_arm_angle);
@@ -171,6 +174,8 @@ class NesfrArmNode : public rclcpp::Node
 
         float _min_arm_angle;
         float _max_arm_angle;
+
+        std::string _joint_state_prefix = "";
 
 };
 
