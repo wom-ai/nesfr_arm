@@ -106,14 +106,17 @@ class NesfrArmNode : public rclcpp::Node
             this->declare_parameter<double>("default_pose.orientation.y", 0.0);
             this->declare_parameter<double>("default_pose.orientation.z", 0.0);
 
+            _joint_state_prefix = this->declare_parameter<std::string>("joint_state_prefix", "");
+            this->get_parameter<std::string>("joint_state_prefix", _joint_state_prefix);
+
             tf2::Quaternion q;
             double x, y, z, ox, oy, oz;
-            std::string prefix = this->get_namespace();
-            prefix.erase(0, 1);
-            prefix += "/";
+//            std::string prefix = this->get_namespace();
+//            prefix.erase(0, 1);
+//            prefix += "/";
 
             default_transform_stamped.header.frame_id = "map";
-            default_transform_stamped.child_frame_id = prefix + "base_link";
+            default_transform_stamped.child_frame_id = _joint_state_prefix + "base_link";
 
             this->get_parameter_or<double>("default_pose.position.x", x, 0.0);
             this->get_parameter_or<double>("default_pose.position.y", y, 0.0);
@@ -150,27 +153,27 @@ class NesfrArmNode : public rclcpp::Node
             auto message = sensor_msgs::msg::JointState();
             message.header.stamp = this->get_clock()->now();
 
-            std::string prefix = this->get_namespace();
-            prefix.erase(0, 1);
-            prefix += "/";
+//            std::string prefix = this->get_namespace();
+//            prefix.erase(0, 1);
+//            prefix += "/";
 
-            message.name.push_back(prefix + "shoulder_lift");
+            message.name.push_back(_joint_state_prefix + "shoulder_lift");
             float shoulder_lift = - _current_arm_angle.load();
             message.position.push_back(shoulder_lift);
 
-            message.name.push_back(prefix + "elbow_joint");
+            message.name.push_back(_joint_state_prefix + "elbow_joint");
             float elbow_joint_angle = -2.0f*shoulder_lift;
             message.position.push_back(elbow_joint_angle);
 
-            message.name.push_back(prefix + "wrist_joint");
+            message.name.push_back(_joint_state_prefix + "wrist_joint");
             message.position.push_back(shoulder_lift);
 
             // Dummy
-            message.name.push_back(prefix + "main_cam_base_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_base_joint");
             message.position.push_back(0.0);
-            message.name.push_back(prefix + "main_cam_pan_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_pan_joint");
             message.position.push_back(0.0);
-            message.name.push_back(prefix + "main_cam_tilt_joint");
+            message.name.push_back(_joint_state_prefix + "main_cam_tilt_joint");
             message.position.push_back(0.0);
 
             //RCLCPP_INFO(this->get_logger(), "publish %s: joint_state=%f", message.header.frame_id.c_str(), _target_arm_angle);
@@ -200,6 +203,8 @@ class NesfrArmNode : public rclcpp::Node
         float _max_arm_angle;
 
         geometry_msgs::msg::TransformStamped default_transform_stamped;
+
+        std::string _joint_state_prefix = "";
 
         //-----------------------------------------------------------------------------
         // can ctrl part

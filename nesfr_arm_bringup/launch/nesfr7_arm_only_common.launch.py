@@ -15,6 +15,9 @@ from launch.substitutions import (Command, EnvironmentVariable, FindExecutable,
                                 PythonExpression, PathJoinSubstitution)
 
 def generate_launch_description():
+
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+
     #
     # references
     #  - https://answers.ros.org/question/384712/ros2-launch-how-to-concatenate-launchconfiguration-with-string/
@@ -43,10 +46,14 @@ def generate_launch_description():
         executable='nesfr_arm_only_node',
         namespace=namespace,
         name='nesfr7_arm_only_node',
-        parameters=[nesfr7_arm_params],
+        parameters=[
+                nesfr7_arm_params,
+                {'joint_state_prefix': ''}
+            ],
         #parameters=[{"param0": 1, "param1": 2}],
         arguments=['--ros-args', '--log-level', [namespace, '.nesfr7_arm_only_node:=info'],],
         output='both',
+        remappings=remappings,
     )
 
     #
@@ -66,7 +73,8 @@ def generate_launch_description():
             nesfr_arm_params,
             " ",
             "prefix:=",
-            namespace, '/',
+            #namespace, '/',
+            " ",
             " ",
         ]
     )
@@ -77,6 +85,7 @@ def generate_launch_description():
         namespace=namespace,
         output="both",
         parameters=[robot_description],
+        remappings=remappings,
     )
 
 
