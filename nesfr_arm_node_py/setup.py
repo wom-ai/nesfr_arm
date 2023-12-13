@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'nesfr_arm_only_node_py'
+package_name = 'nesfr_arm_node_py'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'nesfr_arm_only_node = nesfr_arm_only_node_py.nesfr_arm_only_node:main',
+            'nesfr_arm_only_node_py = nesfr_arm_node_py.nesfr_arm_only_node:main',
         ],
     },
 )
