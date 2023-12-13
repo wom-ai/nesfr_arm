@@ -97,7 +97,7 @@ class NesfrArmOnlyNode(Node):
 
     def __init__(self):
         super().__init__('nesfr_arm_only_node')
-        self.prefix = self.get_namespace()[1:] + '/'
+        #self.prefix = self.get_namespace()[1:] + '/'
 
         self.lock = Lock()
         #
@@ -153,6 +153,9 @@ class NesfrArmOnlyNode(Node):
 
         self.tf_broadcaster = TransformBroadcaster(self)
 
+        self.declare_parameter("joint_state_prefix", "");
+        self.joint_state_prefix = self.get_parameter("joint_state_prefix").value
+
     def timer_callback(self):
 
         ####################################################################
@@ -163,7 +166,7 @@ class NesfrArmOnlyNode(Node):
         # corresponding tf variables
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = 'map'
-        t.child_frame_id = self.prefix + 'base_link'
+        t.child_frame_id = self.joint_state_prefix + 'base_link'
 
         # Turtle only exists in 2D, thus we get x and y translation
         # coordinates from the message and set the z coordinate to 0
@@ -204,26 +207,26 @@ class NesfrArmOnlyNode(Node):
         message.header.stamp = self.get_clock().now().to_msg()
 
 
-        message.name.append(self.prefix + "shoulder_lift")
+        message.name.append(self.joint_state_prefix + "shoulder_lift")
 
         self.lock.acquire()
         shoulder_lift = - self._current_arm_angle;
         self.lock.release()
         message.position.append(shoulder_lift);
 
-        message.name.append(self.prefix + "elbow_joint");
+        message.name.append(self.joint_state_prefix + "elbow_joint");
         elbow_joint_angle = -2.0*shoulder_lift;
         message.position.append(elbow_joint_angle);
 
-        message.name.append(self.prefix + "wrist_joint");
+        message.name.append(self.joint_state_prefix + "wrist_joint");
         message.position.append(shoulder_lift);
 
         # Dummy
-        message.name.append(self.prefix + "main_cam_base_joint");
+        message.name.append(self.joint_state_prefix + "main_cam_base_joint");
         message.position.append(0.0);
-        message.name.append(self.prefix + "main_cam_pan_joint");
+        message.name.append(self.joint_state_prefix + "main_cam_pan_joint");
         message.position.append(0.0);
-        message.name.append(self.prefix + "main_cam_tilt_joint");
+        message.name.append(self.joint_state_prefix + "main_cam_tilt_joint");
         message.position.append(0.0);
 
         self.publisher.publish(message);
