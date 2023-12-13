@@ -96,6 +96,9 @@ class NesfrArmNode : public rclcpp::Node
             this->get_parameter<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle);
             RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
+            _joint_state_prefix = this->declare_parameter<std::string>("joint_state_prefix", "");
+            this->get_parameter<std::string>("joint_state_prefix", _joint_state_prefix);
+
             _tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
             this->declare_parameter<double>("default_pose.position.x", 0.0);
@@ -106,17 +109,43 @@ class NesfrArmNode : public rclcpp::Node
             this->declare_parameter<double>("default_pose.orientation.y", 0.0);
             this->declare_parameter<double>("default_pose.orientation.z", 0.0);
 
-            _joint_state_prefix = this->declare_parameter<std::string>("joint_state_prefix", "");
-            this->get_parameter<std::string>("joint_state_prefix", _joint_state_prefix);
+            this->_update_default_pose();
+            this->_publish_default_pose();
 
+            _param_subscriber = std::make_shared<rclcpp::ParameterEventHandler>(this);
+
+            // Set a callback for this node's integer parameter
+            auto cb = [this](const rclcpp::Parameter & p) {
+              RCLCPP_INFO(
+                  this->get_logger(), "cb: Received an update to parameter \"%s\" of type %s: \"%lf\"",
+                  p.get_name().c_str(),
+                  p.get_type_name().c_str(),
+                  p.as_double());
+
+                  this->_update_default_pose();
+            };
+            _param_cb_handle_default_pose_position_x = _param_subscriber->add_parameter_callback("default_pose.position.x", cb);
+            _param_cb_handle_default_pose_position_y = _param_subscriber->add_parameter_callback("default_pose.position.y", cb);
+            _param_cb_handle_default_pose_position_z = _param_subscriber->add_parameter_callback("default_pose.position.z", cb);
+
+            _param_cb_handle_default_pose_orientation_ox = _param_subscriber->add_parameter_callback("default_pose.orientation.ox", cb);
+            _param_cb_handle_default_pose_orientation_oy = _param_subscriber->add_parameter_callback("default_pose.orientation.oy", cb);
+            _param_cb_handle_default_pose_orientation_oz = _param_subscriber->add_parameter_callback("default_pose.orientation.oz", cb);
+
+            RCLCPP_INFO(this->get_logger(), "Initialization completed");
+        }
+
+    private:
+
+        void _update_default_pose() {
             tf2::Quaternion q;
             double x, y, z, ox, oy, oz;
 //            std::string prefix = this->get_namespace();
 //            prefix.erase(0, 1);
 //            prefix += "/";
 
-            default_transform_stamped.header.frame_id = "map";
-            default_transform_stamped.child_frame_id = _joint_state_prefix + "base_link";
+            _default_transform_stamped.header.frame_id = "map";
+            _default_transform_stamped.child_frame_id = _joint_state_prefix + "base_link";
 
             this->get_parameter_or<double>("default_pose.position.x", x, 0.0);
             this->get_parameter_or<double>("default_pose.position.y", y, 0.0);
@@ -126,27 +155,28 @@ class NesfrArmNode : public rclcpp::Node
             this->get_parameter_or<double>("default_pose.orientation.oy", oy, 0.0);
             this->get_parameter_or<double>("default_pose.orientation.oz", oz, 0.0);
 
-            default_transform_stamped.transform.translation.x = x;
-            default_transform_stamped.transform.translation.y = y;
-            default_transform_stamped.transform.translation.z = z;
+            _default_transform_stamped.transform.translation.x = x;
+            _default_transform_stamped.transform.translation.y = y;
+            _default_transform_stamped.transform.translation.z = z;
 
             q.setRPY(ox, oy, oz);
 
-            default_transform_stamped.transform.rotation.x = q.x();
-            default_transform_stamped.transform.rotation.y = q.y();
-            default_transform_stamped.transform.rotation.z = q.z();
-            default_transform_stamped.transform.rotation.w = q.w();
-
-            RCLCPP_INFO(this->get_logger(), "Initialization completed");
+            _default_transform_stamped.transform.rotation.x = q.x();
+            _default_transform_stamped.transform.rotation.y = q.y();
+            _default_transform_stamped.transform.rotation.z = q.z();
+            _default_transform_stamped.transform.rotation.w = q.w();
         }
 
-    private:
+        void _publish_default_pose() {
+            // publish default transform of the stationary arm robot
+            _default_transform_stamped.header.stamp = this->get_clock()->now();
+            _tf_broadcaster->sendTransform(_default_transform_stamped);
+        }
+
         void _timercallback()
         {
             // publish default transform of the stationary arm robot
-            default_transform_stamped.header.stamp = this->get_clock()->now();
-            _tf_broadcaster->sendTransform(default_transform_stamped);
-
+            this->_publish_default_pose();
             // publish joint_states
             if (isnan(_current_arm_angle))
                 return;
@@ -202,7 +232,14 @@ class NesfrArmNode : public rclcpp::Node
         float _min_arm_angle;
         float _max_arm_angle;
 
-        geometry_msgs::msg::TransformStamped default_transform_stamped;
+        geometry_msgs::msg::TransformStamped _default_transform_stamped;
+        std::shared_ptr<rclcpp::ParameterEventHandler> _param_subscriber;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_position_x;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_position_y;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_position_z;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_orientation_ox;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_orientation_oy;
+        std::shared_ptr<rclcpp::ParameterCallbackHandle> _param_cb_handle_default_pose_orientation_oz;
 
         std::string _joint_state_prefix = "";
 

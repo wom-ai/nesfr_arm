@@ -9,6 +9,12 @@ from threading import Lock
 
 import rclpy
 from rclpy.node import Node
+#
+# TODO
+#   - ParameterEventHander is not included in galactic
+#   - use it on later version of ROS2
+#
+#from rclpy import ParameterEventHandler
 from sensor_msgs.msg import Joy
 from sensor_msgs.msg import JointState
 
@@ -140,7 +146,12 @@ class NesfrArmOnlyNode(Node):
         self.min_arm_angle = self.get_parameter('joint_limits.shoulder_lift.min_position').value
         self.max_arm_angle = self.get_parameter('joint_limits.shoulder_lift.max_position').value
 
+        self.declare_parameter("joint_state_prefix", "");
+        self.joint_state_prefix = self.get_parameter("joint_state_prefix").value
+
         # dummy location broadcaster
+        self.tf_broadcaster = TransformBroadcaster(self)
+
         self.get_logger().info('>>> dummy location setup')
         self.declare_parameter('default_pose.position.x', 0.0)
         self.declare_parameter('default_pose.position.y', 0.0)
@@ -149,30 +160,37 @@ class NesfrArmOnlyNode(Node):
         self.declare_parameter('default_pose.orientation.x', 0.0)
         self.declare_parameter('default_pose.orientation.y', 0.0)
         self.declare_parameter('default_pose.orientation.z', 0.0)
+
+        self.default_transform_stamped = TransformStamped()
+
+        self.update_default_pose()
+        self.publish_default_pose()
+
+#        self.param_subscriber = ParameterEventHandler(self)
+#
+#        def param_callback(param):
+#            self.get_logger().info("cb: Received an update to parameter {}".format(param))
+#            self.update_default_pose()
+#
+#        self.param_subscriber.add_paramter_callback(parameter_name="default_pose.position.x", callback=param_callback)
+#
         self.get_logger().info('<<< dummy location setup')
 
-        self.tf_broadcaster = TransformBroadcaster(self)
 
-        self.declare_parameter("joint_state_prefix", "");
-        self.joint_state_prefix = self.get_parameter("joint_state_prefix").value
-
-    def timer_callback(self):
-
+    def update_default_pose(self):
         ####################################################################
         # dummy location broadcaster
-        t = TransformStamped()
 
         # Read message content and assign it to
         # corresponding tf variables
-        t.header.stamp = self.get_clock().now().to_msg()
-        t.header.frame_id = 'map'
-        t.child_frame_id = self.joint_state_prefix + 'base_link'
+        self.default_transform_stamped.header.frame_id = 'map'
+        self.default_transform_stamped.child_frame_id = self.joint_state_prefix + 'base_link'
 
         # Turtle only exists in 2D, thus we get x and y translation
         # coordinates from the message and set the z coordinate to 0
-        t.transform.translation.x = self.get_parameter('default_pose.position.x').value
-        t.transform.translation.y = self.get_parameter('default_pose.position.y').value
-        t.transform.translation.z = self.get_parameter('default_pose.position.z').value
+        self.default_transform_stamped.transform.translation.x = self.get_parameter('default_pose.position.x').value
+        self.default_transform_stamped.transform.translation.y = self.get_parameter('default_pose.position.y').value
+        self.default_transform_stamped.transform.translation.z = self.get_parameter('default_pose.position.z').value
 
         # For the same reason, turtle can only rotate around one axis
         # and this why we set rotation in x and y to 0 and obtain
@@ -180,13 +198,20 @@ class NesfrArmOnlyNode(Node):
         q = quaternion_from_euler(  self.get_parameter('default_pose.orientation.x').value,
                                     self.get_parameter('default_pose.orientation.y').value,
                                     self.get_parameter('default_pose.orientation.z').value)
-        t.transform.rotation.x = q[0]
-        t.transform.rotation.y = q[1]
-        t.transform.rotation.z = q[2]
-        t.transform.rotation.w = q[3]
+        self.default_transform_stamped.transform.rotation.x = q[0]
+        self.default_transform_stamped.transform.rotation.y = q[1]
+        self.default_transform_stamped.transform.rotation.z = q[2]
+        self.default_transform_stamped.transform.rotation.w = q[3]
 
+    def publish_default_pose(self):
         # Send the transformation
-        self.tf_broadcaster.sendTransform(t)
+        self.default_transform_stamped.header.stamp = self.get_clock().now().to_msg()
+        self.tf_broadcaster.sendTransform(self.default_transform_stamped)
+
+    def timer_callback(self):
+
+        self.update_default_pose()
+        self.publish_default_pose()
 
         ####################################################################
         # joint state publish
