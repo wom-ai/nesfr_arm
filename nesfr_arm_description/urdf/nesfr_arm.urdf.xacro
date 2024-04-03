@@ -10,7 +10,7 @@
     -->
     <xacro:arg name="nesfr_arm_params" default=""/>
     <xacro:property name="nesfr_arm_params_file" value="$(arg nesfr_arm_params)"/>
-    <xacro:property name="nesfr_arm_parameters" value="${load_yaml(nesfr_arm_params_file)}"/>
+    <xacro:property name="nesfr_arm_parameters" value="${xacro.load_yaml(nesfr_arm_params_file)}"/>
     <xacro:property name="shoulder_lift_lower_limit" value="${nesfr_arm_parameters['joint_limits']['shoulder_lift']['min_position']}"/>
     <xacro:property name="shoulder_lift_upper_limit" value="${nesfr_arm_parameters['joint_limits']['shoulder_lift']['max_position']}"/>
     <xacro:property name="elbow_joint_lower_limit" value="${nesfr_arm_parameters['joint_limits']['elbow_joint']['min_position']}"/>
