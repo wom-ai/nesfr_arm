@@ -11,6 +11,9 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
+option(BUILD_USER_EMAIL "build user email address" "no-one@nowhere")
+message("BUILD_USER_EMAIL=${BUILD_USER_EMAIL}")
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -74,7 +77,7 @@ target_include_directories(nesfr_arm_node PUBLIC
 
 target_compile_definitions(
     nesfr_arm_node PUBLIC
-    __BUILD_USER__="$ENV{USER}"
+    __BUILD_USER_EMAIL__="${BUILD_USER_EMAIL}"
     __BUILD_HOSTNAME__="${BUILD_HOSTNAME}"
     __GIT_BRANCH__="${GIT_BRANCH}"
     __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"
@@ -99,7 +102,7 @@ target_include_directories(nesfr_arm_only_node PUBLIC
 
 target_compile_definitions(
     nesfr_arm_only_node PUBLIC
-    __BUILD_USER__="$ENV{USER}"
+    __BUILD_USER_EMAIL__="${BUILD_USER_EMAIL}"
     __BUILD_HOSTNAME__="${BUILD_HOSTNAME}"
     __GIT_BRANCH__="${GIT_BRANCH}"
     __GIT_COMMIT_HASH__="${GIT_COMMIT_HASH}"

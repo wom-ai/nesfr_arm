@@ -54,7 +54,7 @@ using std::placeholders::_1;
 
 static void print_build_info(void)
 {
-    LOG_INFO("Built by %s on %s", __BUILD_USER__, __BUILD_HOSTNAME__);
+    LOG_INFO("Built by %s on %s", __BUILD_USER_EMAIL__, __BUILD_HOSTNAME__);
     LOG_INFO("GCC __VERSION__=%s", __VERSION__);
     LOG_INFO("CPP STANDARD __cplusplus=%ld", __cplusplus);
     LOG_INFO("Build TIme: %s %s", __DATE__, __TIME__);
