@@ -128,9 +128,9 @@ class NesfrArmNode : public rclcpp::Node
             _param_cb_handle_default_pose_position_y = _param_subscriber->add_parameter_callback("default_pose.position.y", cb);
             _param_cb_handle_default_pose_position_z = _param_subscriber->add_parameter_callback("default_pose.position.z", cb);
 
-            _param_cb_handle_default_pose_orientation_ox = _param_subscriber->add_parameter_callback("default_pose.orientation.ox", cb);
-            _param_cb_handle_default_pose_orientation_oy = _param_subscriber->add_parameter_callback("default_pose.orientation.oy", cb);
-            _param_cb_handle_default_pose_orientation_oz = _param_subscriber->add_parameter_callback("default_pose.orientation.oz", cb);
+            _param_cb_handle_default_pose_orientation_ox = _param_subscriber->add_parameter_callback("default_pose.orientation.x", cb);
+            _param_cb_handle_default_pose_orientation_oy = _param_subscriber->add_parameter_callback("default_pose.orientation.y", cb);
+            _param_cb_handle_default_pose_orientation_oz = _param_subscriber->add_parameter_callback("default_pose.orientation.z", cb);
 
             RCLCPP_INFO(this->get_logger(), "Initialization completed");
         }
@@ -151,9 +151,9 @@ class NesfrArmNode : public rclcpp::Node
             this->get_parameter_or<double>("default_pose.position.y", y, 0.0);
             this->get_parameter_or<double>("default_pose.position.z", z, 0.0);
 
-            this->get_parameter_or<double>("default_pose.orientation.ox", ox, 0.0);
-            this->get_parameter_or<double>("default_pose.orientation.oy", oy, 0.0);
-            this->get_parameter_or<double>("default_pose.orientation.oz", oz, 0.0);
+            this->get_parameter_or<double>("default_pose.orientation.x", ox, 0.0);
+            this->get_parameter_or<double>("default_pose.orientation.y", oy, 0.0);
+            this->get_parameter_or<double>("default_pose.orientation.z", oz, 0.0);
 
             _default_transform_stamped.transform.translation.x = x;
             _default_transform_stamped.transform.translation.y = y;
