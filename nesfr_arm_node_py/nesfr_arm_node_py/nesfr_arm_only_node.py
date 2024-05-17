@@ -106,10 +106,13 @@ class NesfrArmOnlyNode(Node):
         #self.prefix = self.get_namespace()[1:] + '/'
 
         self.lock = Lock()
+        self.declare_parameter('can_driver.arm_motor_id', ARM_MOTOR_ID)
+        self._can_id = self.get_parameter('can_driver.arm_motor_id').value
+        self.get_logger().info('can_driver.arm_motor_id={:X}'.format(self._can_id))
         #
         # reference: https://m.blog.naver.com/techref/221999446630
         #
-        can_filters = [{"can_id": ARM_MOTOR_ID, "can_mask": ARM_MOTOR_ID_MASK, "extended": True}]
+        can_filters = [{"can_id": self._can_id, "can_mask": ARM_MOTOR_ID_MASK, "extended": True}]
         self.bus = can.Bus(interface='socketcan',
                       channel='can0',
                       can_filters=can_filters,
@@ -273,10 +276,9 @@ class NesfrArmOnlyNode(Node):
         # write angle to motors
         target_angle = self._target_arm_angle*180.0/math.pi*10000.0
 
-        _can_id = ARM_MOTOR_ID
         max_rot_speed = ARM_MOTOR_MAX_ROT_SPEED
         max_rot_accel = ARM_MOTOR_MAX_ROT_ACCEL
-        can_id = _can_id |  (SET_POS_SPD << 8)
+        can_id = self._can_id |  (SET_POS_SPD << 8)
         data = struct.pack(">LHH", int(target_angle), max_rot_speed, max_rot_accel)
         message = can.Message(arbitration_id=can_id, is_extended_id=True, data=data)
         self.get_logger().debug(f'message={message}')

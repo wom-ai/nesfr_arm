@@ -3,11 +3,39 @@ nesfr7_00/nesfr7_arm_node:
     #
     # reference: https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver/blob/foxy/ur_description/config/ur3/joint_limits.yaml
     #
+    can_driver:
+      arm_motor_id: 4
+
     joint_limits:
       shoulder_lift:
         min_position: 0.08726 # 5.0*M_PI/180
         max_position: 1.04719 # 60.0*M_PI/180
+      elbow_joint:
+        min_position: 0.17453 # 10.0*M_PI/180
+        max_position: 2.09439 # 120.0*M_PI/180
 
+nesfr7_00/nesfr7_arm_only_node:
+  ros__parameters:
+    can_driver:
+      arm_motor_id: 4
+
+    joint_limits:
+      shoulder_lift:
+        min_position: 0.08726 # 5.0*M_PI/180
+        max_position: 1.04719 # 60.0*M_PI/180
+      elbow_joint:
+        min_position: 0.17453 # 10.0*M_PI/180
+        max_position: 2.09439 # 120.0*M_PI/180
+
+nesfr7_00/nesfr7_arm_only_node_py:
+  ros__parameters:
+    can_driver:
+      arm_motor_id: 4
+
+    joint_limits:
+      shoulder_lift:
+        min_position: 0.08726 # 5.0*M_PI/180
+        max_position: 1.04719 # 60.0*M_PI/180
       elbow_joint:
         min_position: 0.17453 # 10.0*M_PI/180
         max_position: 2.09439 # 120.0*M_PI/180

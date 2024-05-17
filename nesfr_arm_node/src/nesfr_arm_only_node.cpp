@@ -89,12 +89,16 @@ class NesfrArmNode : public rclcpp::Node
                                                                                 std::bind(&NesfrArmNode::joy_callback,
                                                                                 this, _1));
 
+            _can_id = this->declare_parameter<int>("can_driver.arm_motor_id", ARM_MOTOR_ID);
+            this->get_parameter<int>("can_driver.arm_motor_id", _can_id);
+            RCLCPP_INFO(this->get_logger(), "can_driver.arm_motor_id=0x%x", _can_id);
+
             _min_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.min_position", 5.0f*(M_PI/180.0f));
             _max_arm_angle = this->declare_parameter<float>("joint_limits.shoulder_lift.max_position", 60.0f*(M_PI/180.0f));
 
             this->get_parameter<float>("joint_limits.shoulder_lift.min_position", _min_arm_angle);
             this->get_parameter<float>("joint_limits.shoulder_lift.max_position", _max_arm_angle);
-            RCLCPP_INFO(this->get_logger(), "min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
+            RCLCPP_INFO(this->get_logger(), "joint_limits.shoulder_lift min/max_angle=(%f, %f)",_min_arm_angle, _max_arm_angle);
 
             _joint_state_prefix = this->declare_parameter<std::string>("joint_state_prefix", "");
             this->get_parameter<std::string>("joint_state_prefix", _joint_state_prefix);
@@ -249,7 +253,7 @@ class NesfrArmNode : public rclcpp::Node
 
     private:
 
-        unsigned int _can_id = ARM_MOTOR_ID;
+        int _can_id = ARM_MOTOR_ID;
         int _can_fd = -1;
         std::string _name = "can0";
 
@@ -288,7 +292,7 @@ class NesfrArmNode : public rclcpp::Node
             //  - https://docs.huihoo.com/doxygen/linux/kernel/3.7/structcan__filter.html
             //
             struct can_filter rfilter;
-            rfilter.can_id = ARM_MOTOR_ID;
+            rfilter.can_id = _can_id;
             rfilter.can_mask = ARM_MOTOR_ID_MASK;
             err = setsockopt(_can_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
             if(err < 0){
@@ -317,7 +321,7 @@ class NesfrArmNode : public rclcpp::Node
                 return -1;
             }
 
-            if ((response.can_id&ARM_MOTOR_ID_MASK) == _can_id) {
+            if ((response.can_id&ARM_MOTOR_ID_MASK) == (unsigned int) _can_id) {
                 int16_t pos_int = response.data[0] << 8 | response.data[1];
                 angle = deg_to_rad(0.1f*pos_int);
             } else {
