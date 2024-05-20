@@ -328,6 +328,7 @@ class NesfrArmNode : public rclcpp::Node
                 RCLCPP_WARN(this->get_logger(), "motor_id=%d", response.can_id&ARM_MOTOR_ID_MASK);
                 return -1;
             }
+            RCLCPP_DEBUG(this->get_logger(), "_read_arm_angle(%f)", rad_to_deg(angle));
             return 0;
         }
 
@@ -336,7 +337,7 @@ class NesfrArmNode : public rclcpp::Node
             memset(&cmd, 0, sizeof(cmd));
             cmd.can_id = _can_id | CAN_EFF_FLAG | (SET_POS_SPD << 8);
 
-            RCLCPP_INFO(this->get_logger(), "_write_arm_angle(%f)", rad_to_deg(angle));
+            RCLCPP_DEBUG(this->get_logger(), "_write_arm_angle(%f)", rad_to_deg(angle));
 
             float angle_ = rad_to_deg(angle) * 10000.0f;
             int32_t int_angle = static_cast<int32_t>(angle_);
@@ -386,7 +387,7 @@ class NesfrArmNode : public rclcpp::Node
                 }
 #else
                 if (_write_arm_angle(std::clamp(target_angle, _min_arm_angle, _max_arm_angle)) < 0) {
-                  RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
+                    RCLCPP_ERROR(this->get_logger(), "_write_arm_angle() failed");
                 }
 #endif
                 //std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -394,7 +395,7 @@ class NesfrArmNode : public rclcpp::Node
         }
 
         void can_ctrl_thread_func(void) {
-            fprintf(stderr, ">>> CAN Ctrl Thread\n");
+            LOG_INFO( ">>> CAN Ctrl Thread\n");
             if (_init_can() < 0) {
                 system_on.store(false);
                 return;
@@ -402,6 +403,7 @@ class NesfrArmNode : public rclcpp::Node
 
             const float init_angle = (_min_arm_angle + _max_arm_angle)/2.0f;
             move_to_target_angle(init_angle);
+
             try {
                 unsigned int tc_frame_count = 0;
                 auto b = std::chrono::high_resolution_clock::now();
@@ -444,7 +446,7 @@ class NesfrArmNode : public rclcpp::Node
             move_to_target_angle(init_angle);
             system_on.store(false);
 
-            fprintf(stderr, "<<< CAN Ctrl Thread\n");
+            LOG_INFO("<<< CAN Ctrl Thread\n");
         }
 
         void stop_can_ctrl_thread_func(void) {
@@ -456,23 +458,24 @@ class NesfrArmNode : public rclcpp::Node
 int main(int argc, char * argv[])
 {
     print_build_info();
-    fprintf(stderr, ">>> Main Thread\n");
     rclcpp::init(argc, argv);
 
     std::shared_ptr<NesfrArmNode> node_ptr = std::make_shared<NesfrArmNode>();
     std::shared_ptr<std::thread> can_ctrl_thread_ptr = std::make_shared<std::thread>(&NesfrArmNode::can_ctrl_thread_func, node_ptr);
 
+    LOG_INFO(">>> Main Thread\n");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     rclcpp::WallRate rate(60);
     while(system_on && rclcpp::ok()) {
         rclcpp::spin_some(node_ptr);
     }
+    system_on.store(false);
+    LOG_INFO("<<< Main Thread\n");
 
     node_ptr->stop_can_ctrl_thread_func();
     can_ctrl_thread_ptr->join();
     rclcpp::shutdown();
 
-    fprintf(stderr, "<<< Main Thread\n");
     return 0;
 }
