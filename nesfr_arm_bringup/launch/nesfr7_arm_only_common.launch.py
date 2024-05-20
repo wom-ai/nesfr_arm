@@ -28,6 +28,11 @@ def generate_launch_description():
             'namespace',
             default_value='please_set_namespace'
             )
+
+    log_level = LaunchConfiguration('log_level')
+    declare_log_level_arg = DeclareLaunchArgument(
+           'log_level', default_value='info',
+            description='log level')
     #
     # nesfr_arm_only_node
     #
@@ -51,7 +56,7 @@ def generate_launch_description():
                 {'joint_state_prefix': ''}
             ],
         #parameters=[{"param0": 1, "param1": 2}],
-        arguments=['--ros-args', '--log-level', [namespace, '.nesfr7_arm_only_node:=info'],],
+        arguments=['--ros-args', '--log-level', [namespace, '.nesfr7_arm_only_node:=', log_level]],
         output='both',
         remappings=remappings,
     )
@@ -91,6 +96,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         namespace_launch_arg,
+        declare_log_level_arg,
         robot_state_publisher_node,
         nesfr_arm_only_node,
         RegisterEventHandler(

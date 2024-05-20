@@ -25,6 +25,11 @@ def generate_launch_description():
             default_value=hostname
             )
 
+    log_level = LaunchConfiguration('log_level')
+    declare_log_level_arg = DeclareLaunchArgument(
+           'log_level', default_value='info',
+            description='log level')
+
     nesfr7_arm_only_common_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 PathJoinSubstitution([
@@ -33,7 +38,8 @@ def generate_launch_description():
                     ])
                 ]),
             launch_arguments={
-                'namespace': namespace
+                'namespace': namespace,
+                'log_level': log_level,
                 }.items()
             )
 
@@ -66,6 +72,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         namespace_launch_arg,
+        declare_log_level_arg,
         nesfr7_arm_only_common_launch,
         joy_node,
     ])
