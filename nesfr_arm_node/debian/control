@@ -1,27 +1,27 @@
-source: ros-galactic-nesfr-arm-node
+source: ros-humble-nesfr-arm-node
 Section: misc
 Priority: optional
 Maintainer: Jaeyoung Lee <jy@wom.ai>
 Build-Depends:  debhelper-compat (= 12),
-                ros-galactic-ament-cmake,
-                ros-galactic-rclcpp,
-                ros-galactic-geometry-msgs,
-                ros-galactic-sensor-msgs,
-                ros-galactic-tf2,
-                ros-galactic-tf2-ros,
-                ros-galactic-ros-workspace
+                ros-humble-ament-cmake,
+                ros-humble-rclcpp,
+                ros-humble-geometry-msgs,
+                ros-humble-sensor-msgs,
+                ros-humble-tf2,
+                ros-humble-tf2-ros,
+                ros-humble-ros-workspace
 Standards-Version: 4.5.0
 Homepage:
 
-Package: ros-galactic-nesfr-arm-node
+Package: ros-humble-nesfr-arm-node
 Architecture: any
 Multi-Arch: foreign
 Depends:  ${misc:Depends},
           ${shlibs:Depends},
-          ros-galactic-rclcpp,
-          ros-galactic-geometry-msgs,
-          ros-galactic-sensor-msgs,
-          ros-galactic-tf2,
-          ros-galactic-tf2-ros,
-          ros-galactic-ros-workspace
+          ros-humble-rclcpp,
+          ros-humble-geometry-msgs,
+          ros-humble-sensor-msgs,
+          ros-humble-tf2,
+          ros-humble-tf2-ros,
+          ros-humble-ros-workspace
 Description: ros2 application for NESFR_VR

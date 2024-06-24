@@ -1,10 +1,3 @@
-ros-galactic-nesfr-arm-bringup (0.1.0-0) UNRELEASED; urgency=low
+ros-humble-nesfr-arm-bringup (0.2.0-0) UNRELEASED; urgency=low
 
- -- Jaeyoung Lee <jy@wom.ai>  Wed, 26 Jul 2023 00:00:00 -0000
-
-ros-galactic-nesfr-arm-bringup (0.0.0-0) UNRELEASED; urgency=low
-
-  * Initial release. Closes: #nnnn
-    <nnnn is the bug number of your ITP>
-
- -- Jaeyoung Lee <jy@wom.ai>  Tue, 25 Apr 2023 00:00:00 -0000
+ -- Jaeyoung Lee <jy@wom.ai>  Mon, 24 Jun 2024 00:00:00 -0000
